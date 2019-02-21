@@ -1,0 +1,1 @@
+clang++ -ggdb -std=c++1z -c Token.cpp -o Token.o
