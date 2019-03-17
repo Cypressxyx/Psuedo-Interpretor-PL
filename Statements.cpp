@@ -24,24 +24,31 @@ void Statements::evaluate(SymTab &symTab) {
 
 // AssignmentStatement
 
-AssignmentStatement::AssignmentStatement() : _lhsVariable{""}, _rhsExpression{nullptr} {}
+template <typename T>
+AssignmentStatement<T>::AssignmentStatement() : _lhsVariable{""}, _rhsExpression{nullptr} {}
 
-AssignmentStatement::AssignmentStatement(std::string lhsVar, ExprNode *rhsExpr):
+template <typename T>
+AssignmentStatement<T>::AssignmentStatement(std::string lhsVar, ExprNode<T> *rhsExpr):
         _lhsVariable{lhsVar}, _rhsExpression{rhsExpr} {}
 
-void AssignmentStatement::evaluate(SymTab &symTab) {
+template <typename T>
+void AssignmentStatement<T>::evaluate(SymTab &symTab) {
     int rhs = rhsExpression()->evaluate(symTab);
     symTab.setValueFor(lhsVariable(), rhs);
 }
 
-std::string &AssignmentStatement::lhsVariable() {
+template <typename T>
+std::string &AssignmentStatement<T>::lhsVariable() {
     return _lhsVariable;
 }
 
-ExprNode *&AssignmentStatement::rhsExpression() {
+template <typename T>
+ExprNode<T> *&AssignmentStatement<T>::rhsExpression() {
     return _rhsExpression;
 }
-void AssignmentStatement::print() {
+
+template <typename T>
+void AssignmentStatement<T>::print() {
     std::cout << _lhsVariable << " = ";
     _rhsExpression->print();
     std::cout << std::endl;
@@ -49,45 +56,59 @@ void AssignmentStatement::print() {
 
 //Print Statement
 
-PrintStatement::PrintStatement() : _Variable(""), value(nullptr) {}
-PrintStatement::PrintStatement(std::string Var, ExprNode *tok): _Variable(Var), value(tok) {}
+template <typename T>
+PrintStatement<T>::PrintStatement() : _Variable(""), value(nullptr) {}
 
-ExprNode *&PrintStatement::valueVariable() {
+template <typename T>
+PrintStatement<T>::PrintStatement(std::string Var, ExprNode<T> *tok): _Variable(Var), value(tok) {}
+
+template <typename T>
+ExprNode<T> *&PrintStatement<T>::valueVariable() {
 	return value;
 }
 
-void PrintStatement::evaluate(SymTab &symTab){
+template <typename T>
+void PrintStatement<T>::evaluate(SymTab &symTab){
   //int val = valueVariable()->evaluate(symTab);
   int val = symTab.getValueFor(_Variable);
 	std::cout << val << std::endl;
 	return ;
 }
 
-void PrintStatement::print() {
+template <typename T>
+void PrintStatement<T>::print() {
 	std::cout << "print " << _Variable << std::endl;
 }
 
 
 //For Statement
-ForStatement::ForStatement() : assignStmt{nullptr}, assignStmtTwo{nullptr}, stmts{nullptr}, exprNode{nullptr} {}
-ForStatement::ForStatement(AssignmentStatement *_assignStmt, ExprNode *_exprNode, AssignmentStatement *_assignStmtTwo, Statements *_stmts) {
+template <typename T>
+ForStatement<T>::ForStatement() : assignStmt{nullptr}, assignStmtTwo{nullptr}, stmts{nullptr}, exprNode{nullptr} {}
+
+template <typename T>
+ForStatement<T>::ForStatement(AssignmentStatement<T> *_assignStmt, ExprNode<T> *_exprNode, AssignmentStatement<T> *_assignStmtTwo, Statements *_stmts) {
 	assignStmt = _assignStmt;
 	exprNode   = _exprNode; assignStmtTwo = _assignStmtTwo;
-	stmts = _stmts;
+	stmts      = _stmts;
 }
 
-AssignmentStatement *&ForStatement::getAssignStmtTwo() {
+template <typename T>
+AssignmentStatement<T> *&ForStatement<T>::getAssignStmtTwo() {
 	return assignStmtTwo;
 }
 
-AssignmentStatement *&ForStatement::getAssignStmt() {
+template <typename T>
+AssignmentStatement<T> *&ForStatement<T>::getAssignStmt() {
 	return assignStmt;
 }
-ExprNode *&ForStatement::getRelExpr() {
+
+template <typename T>
+ExprNode<T> *&ForStatement<T>::getRelExpr() {
 	return exprNode;
 }
 
-void ForStatement::evaluate(SymTab &symTab) {
+template <typename T>
+void ForStatement<T>::evaluate(SymTab &symTab) {
 	assignStmt->evaluate(symTab);
 	while(exprNode->evaluate(symTab)) {
 		assignStmtTwo->evaluate(symTab);
@@ -95,7 +116,8 @@ void ForStatement::evaluate(SymTab &symTab) {
 	}
 };
 
-void ForStatement::print() {
+template <typename T>
+void ForStatement<T>::print() {
 	std::cout << "for ( "; 
 	assignStmt->print(); 
 	std::cout << "; " ;
@@ -107,3 +129,6 @@ void ForStatement::print() {
 	std::cout << "}\n"; 
 }
 
+template class ForStatement<int>;
+template class AssignmentStatement<int>;
+template class PrintStatement<int>;

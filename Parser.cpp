@@ -15,8 +15,11 @@
 #include "Statements.hpp"
 
 // Parser functions
+//template class Parser<float>;
+//template class Parser<std::string>;
 
-void Parser::die(std::string where, std::string message, Token &token) {
+template <typename T>
+void Parser<T>::die(std::string where, std::string message, Token &token) {
     std::cout << where << " " << message << std::endl;
     token.print();
     std::cout << std::endl;
@@ -25,7 +28,8 @@ void Parser::die(std::string where, std::string message, Token &token) {
     exit(1);
 }
 
-Statements *Parser::statements() {
+template <typename T>
+Statements *Parser<T>::statements() {
     // This function is called when we KNOW that we are about to parse
     // a series of assignment statements.
     Statements *stmts = new Statements();
@@ -33,18 +37,18 @@ Statements *Parser::statements() {
     while (tok.isName()) {
 				if (tok.isKeyword()) { //use catch instead
 					if (tok.getName() == "print") {
-						PrintStatement *printStmt = printStatement();
+						PrintStatement<T> *printStmt = printStatement();
 						stmts->addStatement(printStmt);
 						tok = tokenizer.getToken();
 					} else {
-						ForStatement *forStmt = forStatement();
+						ForStatement<T> *forStmt = forStatement();
 						stmts->addStatement(forStmt);
 						tok = tokenizer.getToken();
 					}
 				}
 				else {
         	tokenizer.ungetToken();
-        	AssignmentStatement *assignStmt = assignStatement();
+        	AssignmentStatement<T> *assignStmt = assignStatement();
         	stmts->addStatement(assignStmt);
         	tok = tokenizer.getToken();
 				}
@@ -53,22 +57,23 @@ Statements *Parser::statements() {
     return stmts;
 }
 
-ForStatement *Parser::forStatement() {
+template <typename T>
+ForStatement<T> *Parser<T>::forStatement() {
 	Token tok = tokenizer.getToken();
 	if (!tok.isOpenParen())
 		die("Parser::forStatement","Expected a ( token, instead got", tok);
 	
-	AssignmentStatement *assignStmt = assignStatement();
+	AssignmentStatement<T> *assignStmt = assignStatement();
 	tok = tokenizer.getToken();	
 	if(!tok.isSemiColon())
 		die("Parser::forStatement","Expected a ; token, instead got", tok);
 	
-	ExprNode *relExprNode = relExpr();
+	ExprNode<T> *relExprNode = relExpr();
 	tok = tokenizer.getToken();	
 	if(!tok.isSemiColon())
 		die("Parser::forStatement","Expected a ; token, instead got", tok);
 
-	AssignmentStatement *assignStmtTwo = assignStatement();
+	AssignmentStatement<T> *assignStmtTwo = assignStatement();
 	tok = tokenizer.getToken();	
 	if (!tok.isCloseParen())
 		die("Parser::forStatement","Expected a ) token, instead got", tok);
@@ -83,18 +88,20 @@ ForStatement *Parser::forStatement() {
 	if (!tok.isCloseBracket())
 		die("Parser::forStatement","Expected a } token, instead got", tok);
 		
-	return new ForStatement(assignStmt, relExprNode, assignStmtTwo, stmts);
+	return new ForStatement<T>(assignStmt, relExprNode, assignStmtTwo, stmts);
 }
 
-PrintStatement *Parser::printStatement() {
+template <typename T>
+PrintStatement<T> *Parser<T>::printStatement() {
 	Token tok = tokenizer.getToken();
 	if (!tok.isName())
 		die("Parser::assignStatement","Expeceted a name token, instead got", tok);
-	ExprNode *value = new Variable(tok);
-	return new PrintStatement(tok.getName(), value);
+	ExprNode<T> *value = new Variable<T>(tok);
+	return new PrintStatement<T>(tok.getName(), value);
 }	
 
-AssignmentStatement *Parser::assignStatement() {
+template <typename T>
+AssignmentStatement<T> *Parser<T>::assignStatement() {
     Token varName = tokenizer.getToken();
     if (!varName.isName())
         die("Parser::assignStatement", "Expected a name token, instead got", varName);
@@ -104,22 +111,23 @@ AssignmentStatement *Parser::assignStatement() {
         die("Parser::assignStatement", "Expected an equal sign, instead got", assignOp);
 
     //ExprNode *rightHandSideExpr = expr();
-    ExprNode *rightHandSideExpr = relExpr();
+    ExprNode<T> *rightHandSideExpr = relExpr();
     //Token tok = tokenizer.getToken();
     //if (!tok.isSemiColon())
         //die("Parser::assignStatement", "Expected a semicolon, instead got", tok);
 
-    return new AssignmentStatement(varName.getName(), rightHandSideExpr);
+    return new AssignmentStatement<T>(varName.getName(), rightHandSideExpr);
 }
 
-ExprNode *Parser::relExpr() {
+template <typename T>
+ExprNode<T> *Parser<T>::relExpr() {
 	/* This Function parses the grammar rules
 			<relExpr> -> { (==,!=) <relTerm> }
 	*/
-	ExprNode *left = relTerm();
+	ExprNode<T> *left = relTerm();
 	Token tok = tokenizer.getToken();
 	while (tok.isEqual() || tok.isNotEqual() ) {
-		InfixExprNode *p = new InfixExprNode(tok);
+		InfixExprNode<T> *p = new InfixExprNode<T>(tok);
 		p->left() = left;
 		p->right() = relTerm();
 		left = p;
@@ -128,12 +136,12 @@ ExprNode *Parser::relExpr() {
 	tokenizer.ungetToken();
 	return left;
 }
-
-ExprNode *Parser::relTerm() {
-	ExprNode *left = relPrimary();
+template <typename T>
+ExprNode<T> *Parser<T>::relTerm() {
+	ExprNode<T> *left = relPrimary();
 	Token tok = tokenizer.getToken();
 	while(tok.isGreaterOperator() || tok.isGreaterThanOrEqual() || tok.isLessOperator() || tok.isLessThanOrEqual()  ) {
-		InfixExprNode *p = new InfixExprNode(tok);
+		InfixExprNode<T> *p = new InfixExprNode<T>(tok);
 		p->left() = left;
 		p->right() = relPrimary();
 		left = p;
@@ -142,12 +150,13 @@ ExprNode *Parser::relTerm() {
 	tokenizer.ungetToken();
 	return left;
 }
-
-ExprNode *Parser::relPrimary() {
+template <typename T>
+ExprNode<T> *Parser<T>::relPrimary() {
 	return expr();
 }
 
-ExprNode *Parser::expr() {
+template <typename T>
+ExprNode<T> *Parser<T>::expr() {
     // This function parses the grammar rules:
 
     // <expr> -> <term> { <add_op> <term> }
@@ -155,10 +164,10 @@ ExprNode *Parser::expr() {
 
     // However, it makes the <add_op> left associative.
 
-    ExprNode *left = term();
+    ExprNode<T> *left = term();
     Token tok = tokenizer.getToken();
     while (tok.isAdditionOperator() || tok.isSubtractionOperator()) {
-        InfixExprNode *p = new InfixExprNode(tok);
+        InfixExprNode<T> *p = new InfixExprNode<T>(tok);
         p->left() = left;
         p->right() = term();
         left = p;
@@ -169,18 +178,19 @@ ExprNode *Parser::expr() {
 }
 
 
-ExprNode *Parser::term() {
+template <typename T>
+ExprNode<T> *Parser<T>::term() {
     // This function parses the grammar rules:
 
     // <term> -> <primary> { <mult_op> <primary> }
     // <mult_op> -> * | / | %
 
     // However, the implementation makes the <mult-op> left associate.
-    ExprNode *left = primary();
+    ExprNode<T> *left = primary();
     Token tok = tokenizer.getToken();
 
     while (tok.isMultiplicationOperator() || tok.isDivisionOperator() || tok.isModuloOperator()) {
-        InfixExprNode *p = new InfixExprNode(tok);
+        InfixExprNode<T> *p = new InfixExprNode<T>(tok);
         p->left() = left;
         p->right() = primary();
         left = p;
@@ -190,7 +200,8 @@ ExprNode *Parser::term() {
     return left;
 }
 
-ExprNode *Parser::primary() {
+template <typename T>
+ExprNode<T> *Parser<T>::primary() {
     // This function parses the grammar rules:
 
     // <primary> -> [0-9]+
@@ -200,13 +211,16 @@ ExprNode *Parser::primary() {
     Token tok = tokenizer.getToken();
 
     if (tok.isWholeNumber() )
-        return new WholeNumber(tok);
+        return new WholeNumber<T>(tok);
+
     else if( tok.isName() )
-        return new Variable(tok);
+        return new Variable<T>(tok);
+
 		else if( tok.isRelationalOperator() )
-				return new RelExpr(tok);
+				return new RelExpr<T>(tok);
+
     else if (tok.isOpenParen()) {
-        ExprNode *p = expr();
+        ExprNode<T> *p = expr();
         Token token = tokenizer.getToken();
         if (!token.isCloseParen())
             die("Parser::primary", "Expected close-parenthesis, instead got", token);
@@ -216,3 +230,4 @@ ExprNode *Parser::primary() {
 
     return nullptr;  // Will not reach this statement!
 }
+template class Parser<int>;

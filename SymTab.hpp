@@ -5,6 +5,7 @@
 #ifndef EXPRINTER_SYMTAB_HPP
 #define EXPRINTER_SYMTAB_HPP
 
+#include "TypeDesc.hpp"
 #include <string>
 #include <map>
 
@@ -16,9 +17,11 @@ class SymTab {
 public:
     void setValueFor(std::string vName, int value);
     bool isDefined(std::string vName);
+    //TypeDescriptor getValueFor(std::string vName);
     int getValueFor(std::string vName);
 
 private:
+    //std::map<std::string, TypeDescriptor *> symTab;
     std::map<std::string, int> symTab;
 };
 

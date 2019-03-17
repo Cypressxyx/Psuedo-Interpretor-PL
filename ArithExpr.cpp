@@ -1,25 +1,31 @@
 //
 // Created by Ali A. Kooshesh on 2/5/19.
-//
+// Modified by _ 
 
 #include <iostream>
 #include "ArithExpr.hpp"
 
-bool Debug=false;
+bool Debug = false;
 
-// ExprNode
-ExprNode::ExprNode(Token token): _token{token} {}
+/*------- ExprNode ----------------*/
+template <typename T>
+ExprNode<T>::ExprNode(Token token): _token{token} {}
 
-Token ExprNode::token() { return _token; }
+template <typename T>
+Token ExprNode<T>::token() { return _token; }
 
-// InfixExprNode functions
-InfixExprNode::InfixExprNode(Token tk) : ExprNode{tk}, _left(nullptr), _right(nullptr) {}
+/*------- InfixExprNode functions -------*/
+template <typename T>
+InfixExprNode<T>::InfixExprNode(Token tk) : ExprNode<T>{tk}, _left(nullptr), _right(nullptr) {}
 
-ExprNode *&InfixExprNode::left() { return _left; }
+template <typename T>
+ExprNode<T> *&InfixExprNode<T>::left()  { return _left; }
 
-ExprNode *&InfixExprNode::right() { return _right; }
+template <typename T>
+ExprNode<T> *&InfixExprNode<T>::right() { return _right; }
 
-int InfixExprNode::evaluate(SymTab &symTab) {
+template <typename T>
+T InfixExprNode<T>::evaluate(SymTab &symTab) {
     // Evaluates an infix expression using a post-order traversal of the expression tree.
     int lValue = left()->evaluate(symTab);
     int rValue = right()->evaluate(symTab);
@@ -64,20 +70,24 @@ int InfixExprNode::evaluate(SymTab &symTab) {
 	}
 }
 
-void InfixExprNode::print() {
+template <typename T>
+void InfixExprNode<T>::print() {
     _left->print();
     token().print();
     _right->print();
 }
 
-// WHoleNumber
-WholeNumber::WholeNumber(Token token): ExprNode{token} {}
+/*------- WholeNumber functions -------*/
+template <typename T>
+WholeNumber<T>::WholeNumber(Token token): ExprNode<T>{token} {}
 
-void WholeNumber::print() {
+template <typename T>
+void WholeNumber<T>::print() {
     token().print();
 }
 
-int WholeNumber::evaluate(SymTab &symTab) {
+template <typename T>
+T WholeNumber<T>::evaluate(SymTab &symTab) {
 		if (Debug)
     	std::cout << "WholeNumber::evaluate: returning " << token().getWholeNumber() << std::endl;
     return token().getWholeNumber();
@@ -85,13 +95,16 @@ int WholeNumber::evaluate(SymTab &symTab) {
 
 // Variable
 
-Variable::Variable(Token token): ExprNode{token} {}
+template <typename T>
+Variable<T>::Variable(Token token): ExprNode<T>{token} {}
 
-void Variable::print() {
+template <typename T>
+void Variable<T>::print() {
     token().print();
 }
 
-int Variable::evaluate(SymTab &symTab) {
+template <typename T>
+T Variable<T>::evaluate(SymTab &symTab) {
     if( ! symTab.isDefined(token().getName())) {
         std::cout << "Use of undefined variable, " << token().getName() << std::endl;
         exit(1);
@@ -102,13 +115,16 @@ int Variable::evaluate(SymTab &symTab) {
 }
 
 // Relational Expression
-RelExpr::RelExpr(Token token): ExprNode{token} {}
+template <typename T>
+RelExpr<T>::RelExpr(Token token): ExprNode<T>{token} {}
 
-void RelExpr::print() {
+template <typename T>
+void RelExpr<T>::print() {
 	token().print();
 }
 
-int RelExpr::evaluate(SymTab &symTab) {
+template <typename T>
+T RelExpr<T>::evaluate(SymTab &symTab) {
 	if ( !symTab.isDefined(token().relOp())) {
 		std::cout << "Use of undefined variable, " << token().relOp() << std::endl;
 		exit(1);
@@ -118,3 +134,8 @@ int RelExpr::evaluate(SymTab &symTab) {
 	return 1;
 }
 
+template class ExprNode<int>;
+template class InfixExprNode<int>;
+template class WholeNumber<int>;
+template class RelExpr<int>;
+template class Variable<int>;

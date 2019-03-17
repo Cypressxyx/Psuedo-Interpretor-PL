@@ -23,7 +23,8 @@ int main(int argc, char *argv[]) {
     }
 
     Tokenizer tokenizer(inputStream);
-    Parser parser(tokenizer);
+		//template <typename T>
+    Parser<int> parser(tokenizer);
     Statements *statements = parser.statements();
     SymTab symTab;
 

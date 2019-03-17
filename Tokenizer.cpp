@@ -13,7 +13,7 @@ std::string Tokenizer::readName() {
 
     std::string name;
     char c;
-    while( inStream.get(c) && isalnum(c) ) {
+    while( inStream.get(c) && (isalnum(c) || c == '_') ) {
         name += c;
     }
     if(inStream.good())  // In the loop, we have read one char too many.
@@ -59,8 +59,19 @@ Token Tokenizer::getToken() {
         exit(1);
     }
 
-    //    std::cout << "c = " << c << std::endl;
+	 	if ( c == '#' ){
+			while (1) {
+				while( c != '\n' ) {
+					inStream.get(c);
+				}
+				inStream.get(c);
+				if(c != '#') 
+					break;
+			}
+		} 
 
+    //    std::cout << "c = " << c << std::endl;
+			
     Token token;
     if( inStream.eof()) {
         token.eof() = true;

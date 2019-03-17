@@ -20,10 +20,8 @@
 class Statement {
 public:
     Statement();
-
     virtual void print() = 0;
     virtual void evaluate(SymTab &symTab) = 0;
-
 };
 
 
@@ -46,52 +44,55 @@ private:
 // AssignmentStatement represents the notion of an lValue having been assigned an rValue.
 // The rValue is an expression.
 
+template <typename T>
 class AssignmentStatement : public Statement {
 public:
     AssignmentStatement();
-    AssignmentStatement(std::string lhsVar, ExprNode *rhsExpr);
+    AssignmentStatement(std::string lhsVar, ExprNode<T> *rhsExpr);
 
     std::string &lhsVariable();
-    ExprNode *&rhsExpression();
+    ExprNode<T> *&rhsExpression();
 
     virtual void evaluate(SymTab &symTab);
     virtual void print();
 
 private:
     std::string _lhsVariable;
-    ExprNode *_rhsExpression;
+    ExprNode<T> *_rhsExpression;
 };
 
 // PrintStatement represents the notion of value being printed to stdin
+template <typename T>
 class PrintStatement: public Statement {
 public:
 	PrintStatement();
-	PrintStatement(std::string var, ExprNode *);
-  ExprNode *&valueVariable();
+	PrintStatement(std::string var, ExprNode<T> *);
+  ExprNode<T> *&valueVariable();
 	virtual void evaluate(SymTab &symTab);
 	virtual void print();
 private:
 	std::string _Variable;
-	ExprNode *value;
+	ExprNode<T> *value;
 };
 
 // For Statement represents the notion of a loop
+template <typename T>
 class ForStatement: public Statement {
 public:
 	ForStatement();
-	ForStatement(AssignmentStatement *, ExprNode *, AssignmentStatement *, Statements *);
-  AssignmentStatement *&getAssignStmt();
-  AssignmentStatement *&getAssignStmtTwo();
-  ExprNode *&getRelExpr();
+	ForStatement(AssignmentStatement<T> *, ExprNode<T> *, AssignmentStatement<T> *, Statements *);
+  AssignmentStatement<T> *&getAssignStmt();
+  AssignmentStatement<T> *&getAssignStmtTwo();
+  ExprNode<T> *&getRelExpr();
   Statements *&getSmts();
 	//ForStatement(std::string var, exprNode *);
 	virtual void evaluate(SymTab &symTab);
 	virtual void print();
 private:
-	AssignmentStatement *assignStmt;
-	AssignmentStatement *assignStmtTwo;
+	AssignmentStatement<T> *assignStmt;
+	AssignmentStatement<T> *assignStmtTwo;
 	Statements *stmts;
-	ExprNode *exprNode;
+	ExprNode<T> *exprNode;
 
 };
 

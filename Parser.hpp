@@ -12,23 +12,23 @@
 #include<iostream>
 #include<map>
 
-
+template <typename T>
 class Parser {
 public:
     Parser(Tokenizer &tokenizer) : tokenizer{tokenizer} {}
 
     Statements *statements();
 
-    AssignmentStatement *assignStatement();
-    PrintStatement      *printStatement();
-    ForStatement        *forStatement();
+    AssignmentStatement<T> *assignStatement();
+    PrintStatement<T>      *printStatement();
+    ForStatement<T>        *forStatement();
 
-    ExprNode *relExpr();
-    ExprNode *relTerm();
-    ExprNode *relPrimary();
-    ExprNode *expr();
-    ExprNode *term();
-    ExprNode *primary();
+    ExprNode<T> *relExpr();
+    ExprNode<T> *relTerm();
+    ExprNode<T> *relPrimary();
+    ExprNode<T> *expr();
+    ExprNode<T> *term();
+    ExprNode<T> *primary();
 
     std::string id();
 
