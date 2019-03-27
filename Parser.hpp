@@ -17,7 +17,7 @@ class Parser {
 public:
     Parser(Tokenizer &tokenizer) : tokenizer{tokenizer} {}
 
-    Statements *statements();
+    Statements<T> *statements();
 
     AssignmentStatement<T> *assignStatement();
     PrintStatement<T>      *printStatement();

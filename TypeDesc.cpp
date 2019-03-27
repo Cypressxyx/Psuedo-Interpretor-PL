@@ -1,47 +1,20 @@
 #include "TypeDesc.hpp"
 #include <iostream>
+
 /* Type Descriptor Super Class */
-TypeDescriptor::TypeDescriptor() {}
+TypeDesc::TypeDesc(types type): _type{type} {}
 
-/* Integer Descriptor Implementation */
-IntegerTypeDescriptor::IntegerTypeDescriptor(std::string name, int value) {
-	_name = name;
-	_val = value;
+//returns the type int or string
+TypeDesc::types &TypeDesc::type() { 
+	return _type; 
 }
 
-IntegerTypeDescriptor::IntegerTypeDescriptor(std::string name) {
-	_name = name;
-}
+/* Type Descriptor for Integers*/
+NumDesc::NumDesc(types type): TypeDesc{type} {}
 
-void IntegerTypeDescriptor::print() {
-	std::cout << "name:"  << _name  << std::endl;
-	std::cout << "value:" << _val << std::endl;
-}
+/* Type Descriptor for Strings*/
+StrDesc::StrDesc(types type, std::string val): TypeDesc{type}, _val{val} {}
 
-std::string IntegerTypeDescriptor::name() {
-	return _name;
-}
-
-int IntegerTypeDescriptor::value() {
+std::string StrDesc::strVal() {
 	return _val;
 }
-
-/* String Descriptor Implementation */
-StringTypeDescriptor::StringTypeDescriptor(std::string name): _name{name} {}
-
-StringTypeDescriptor::StringTypeDescriptor(std::string name, std::string val): _name{name}, _val{val} {}
-	
-void StringTypeDescriptor::print() {
-	std::cout << "name:" << _name << std::endl;
-	std::cout << "value:" << _val << std::endl;
-}
-
-std::string StringTypeDescriptor::name() {
-	return _name;
-}
-
-std::string StringTypeDescriptor::value() {
-	return _val;
-}
-
-

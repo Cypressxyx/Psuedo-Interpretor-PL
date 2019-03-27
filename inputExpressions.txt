@@ -1,8 +1,4 @@
-# hi
-a = 2
-for (i = 0
-	; i < 2;
-	i = i + 1
-	) {
-print i
-}
+a = "hi"
+b = "c"
+c = a + b
+print c

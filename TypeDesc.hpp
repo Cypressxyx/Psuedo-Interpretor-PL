@@ -1,23 +1,32 @@
+#ifndef TYPEDESC_HPP
+#define TYPEDESC_HPP
 
 #include <string>
 
-class TypeDescriptor {
-	public:
-		TypeDescriptor();
-		virtual void print() = 0;
-		virtual std::string name() = 0;
+struct TypeDesc {
+	enum types {
+		INTEGER,
+		STRING
+	};	
+	TypeDesc(types type);
+	types &type();
+	virtual ~TypeDesc() {}
 	private:
+		types _type;
 };
 
-class IntegerTypeDescriptor: public TypeDescriptor {
-	public:
-		IntegerTypeDescriptor();
-		IntegerTypeDescriptor(std::string , int );
-		IntegerTypeDescriptor(std::string );
-		virtual std::string name();
-		virtual void print();
-		int intValue();
-	private:
-		std::string _name;
-		int _value;
+struct NumDesc: public TypeDesc {
+	NumDesc(types type);	
+	union {
+		int intVal;
+	} value;
 };
+
+struct StrDesc: public TypeDesc {
+	StrDesc(types type, std::string val);
+	std::string strVal();
+	
+	private:
+		std::string _val;
+};
+#endif

@@ -1,7 +1,5 @@
 #include <iostream>
-#include<vector>
-
-
+#include <vector>
 #include "Token.hpp"
 #include "Tokenizer.hpp"
 #include "Parser.hpp"
@@ -14,7 +12,6 @@ int main(int argc, char *argv[]) {
     }
 
     std::ifstream inputStream;
-
     inputStream.open(argv[1], std::ios::in);
     if( ! inputStream.is_open()) {
         std::cout << "Unable top open " << argv[1] << ". Terminating...";
@@ -23,10 +20,9 @@ int main(int argc, char *argv[]) {
     }
 
     Tokenizer tokenizer(inputStream);
-		//template <typename T>
     Parser<int> parser(tokenizer);
-    Statements *statements = parser.statements();
-    SymTab symTab;
+    Statements<int> *statements = parser.statements();
+    SymTab<int> symTab;
 
     statements->print();
     statements->evaluate(symTab);

@@ -1,13 +1,13 @@
-//
-// Created by Ali A. Kooshesh on 2/5/19.
-//
+/*
+ Created by Ali A. Kooshesh on 2/5/19.
+*/
 
 #ifndef EXPRINTER_ARITHEXPR_HPP
 #define EXPRINTER_ARITHEXPR_HPP
 
 #include "Token.hpp"
 #include "SymTab.hpp"
-
+#include "TypeDesc.hpp"
 // Classes in this file define the internal representation of arithmetic expressions.
 
 
@@ -19,8 +19,9 @@ class ExprNode {
 public:
     ExprNode(Token token);
     Token token();
+		//virtual std::string strEval();
     virtual void print() = 0;
-    virtual T evaluate(SymTab &symTab) = 0;
+    virtual int evaluate(SymTab<T> &symTab) = 0;
 
 private:
     Token _token;
@@ -37,7 +38,7 @@ class InfixExprNode: public ExprNode<T> {  // An expression tree node.
     ExprNode<T> *&left();
     ExprNode<T> *&right();
     virtual void print();
-    virtual T evaluate(SymTab &symTab);
+    virtual int evaluate(SymTab<T> &symTab);
 
 	private:
     ExprNode<T> *_left, *_right;
@@ -53,10 +54,10 @@ using ExprNode<T>::token;
 public:
     WholeNumber(Token token);
     virtual void print();
-    virtual T evaluate(SymTab &symTab);
+    virtual int evaluate(SymTab<T> &symTab);
 };
 
-// Varialbe is a leaf-node in an expression tree. It corresponds to
+// Variable is a leaf-node in an expression tree. It corresponds to
 // a terminal in the production rules of the grammar that describes the
 // syntax of arithmetic expressions.
 
@@ -66,7 +67,7 @@ using ExprNode<T>::token;
 public:
     Variable(Token token);
     virtual void print();
-    virtual T evaluate(SymTab &symTab);
+    virtual int evaluate(SymTab<T> &symTab);
 };
 
 template <typename T>
@@ -75,7 +76,16 @@ using ExprNode<T>::token;
 public:
 	RelExpr(Token token);
 	virtual void print();
-	virtual T evaluate(SymTab &symTab);
+	virtual int evaluate(SymTab<T> &symTab);
 };
 
+template <typename T>
+class Str: public ExprNode<T> {
+using ExprNode<T>::token;
+public:
+	Str(Token token);
+	virtual void print();
+	virtual int evaluate(SymTab<T> &symTab);
+	std::string strEval(SymTab<T> &symTab);
+};
 #endif //EXPRINTER_ARITHEXPR_HPP

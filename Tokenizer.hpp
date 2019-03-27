@@ -16,7 +16,7 @@ public:
     Tokenizer(std::ifstream &inStream);
     Token getToken();
     void ungetToken();
-  void printProcessedTokens();
+    void printProcessedTokens();
 
 private:
     Token lastToken;
@@ -25,6 +25,7 @@ private:
     std::vector<Token> _tokens; 
 
 private:
+    std::string readString();
     std::string readName();
     int readInteger();
 };

@@ -29,5 +29,6 @@ void Token::print() const {
     else if( isGreaterThanOrEqual() ) std::cout << " >= ";
     else if( isEqual() ) std::cout << " == ";
     else if( isNotEqual() ) std::cout << " != ";
+		else if ( isStr() ) std :: cout << getStr();
     else std::cout << "Uninitialized token.\n";
 }

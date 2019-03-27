@@ -36,10 +36,23 @@ int Tokenizer::readInteger() {
     return intValue;
 }
 
+std::string Tokenizer::readString() {
+	std::string str = "";
+	char c;
+	while( inStream.get(c) && c != '"') {  
+		str += c;
+	}
+	if(!inStream.good()) {
+		std::cout << "Error reading string. Found EOL. Exiting...\n";
+		exit(1);
+	}
+		
+	return str;
+}
+
 Tokenizer::Tokenizer(std::ifstream &stream): ungottenToken{false}, inStream{stream}, lastToken{} {}
 
 Token Tokenizer::getToken() {
-
     if(ungottenToken) {
         ungottenToken = false;
         return lastToken;
@@ -142,7 +155,11 @@ Token Tokenizer::getToken() {
         // put c back into the stream so we can read the entire name in a function.
         inStream.putback(c);
         token.setName( readName() );
-    } else {
+    } 
+		else if ( c == '"' ) {
+			token.setString( readString() );
+		}
+		else {
         std::cout << "Unknown character in input. ->" << c << "<-" << std::endl;
         exit(1);
     }

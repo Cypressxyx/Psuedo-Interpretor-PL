@@ -61,9 +61,12 @@ public:
 		}
 
     bool isName() const                   { return _name.length() > 0; }
+		bool isStr()  const										{ return _str.length() > 0;  }
 		bool isKeyword() const								{ return _name == "print" || _name == "for"; }
-    std::string getName() const                  { return _name; }
+    std::string getName() const           { return _name; }
+    std::string getStr() const            { return _str; }
     void setName(std::string n) { _name = n; }
+    void setString(std::string n)  { _str  = n; }
 
     bool &isWholeNumber() { return _isWholeNumber; }
     bool isWholeNumber() const { return _isWholeNumber; }
@@ -76,12 +79,13 @@ public:
     void print() const;
 
 private:
+		std::string _relOp;
     std::string _name;
+		std::string _str;
     bool _eof, _eol;
     bool _isWholeNumber;
     char _symbol;
     int _wholeNumber;
-		std::string _relOp;
 };
 
 #endif //EXPRINTER_TOKEN_HPP

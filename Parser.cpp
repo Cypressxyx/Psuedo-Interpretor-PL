@@ -29,10 +29,10 @@ void Parser<T>::die(std::string where, std::string message, Token &token) {
 }
 
 template <typename T>
-Statements *Parser<T>::statements() {
+Statements<T> *Parser<T>::statements() {
     // This function is called when we KNOW that we are about to parse
     // a series of assignment statements.
-    Statements *stmts = new Statements();
+    Statements<T> *stmts = new Statements<T>();
     Token tok = tokenizer.getToken();
     while (tok.isName()) {
 				if (tok.isKeyword()) { //use catch instead
@@ -82,7 +82,7 @@ ForStatement<T> *Parser<T>::forStatement() {
 	if (!tok.isOpenBracket())
 		die("Parser::forStatement","Expected a { token, instead got", tok);
 
-	Statements *stmts = statements();
+	Statements<T> *stmts = statements();
 
 	tok = tokenizer.getToken();	
 	if (!tok.isCloseBracket())
@@ -115,7 +115,6 @@ AssignmentStatement<T> *Parser<T>::assignStatement() {
     //Token tok = tokenizer.getToken();
     //if (!tok.isSemiColon())
         //die("Parser::assignStatement", "Expected a semicolon, instead got", tok);
-
     return new AssignmentStatement<T>(varName.getName(), rightHandSideExpr);
 }
 
@@ -213,6 +212,9 @@ ExprNode<T> *Parser<T>::primary() {
     if (tok.isWholeNumber() )
         return new WholeNumber<T>(tok);
 
+		else if (tok.isStr() ) 
+				return new Str<T>(tok);
+
     else if( tok.isName() )
         return new Variable<T>(tok);
 
@@ -230,4 +232,5 @@ ExprNode<T> *Parser<T>::primary() {
 
     return nullptr;  // Will not reach this statement!
 }
+//template class Parser<std::string>;
 template class Parser<int>;

@@ -1,29 +1,33 @@
-//
-// Created by Ali A. Kooshesh on 2/5/19.
-//
+/*
+   Created by Ali A. Kooshesh on 2/5/19.
+*/
 
 #include "Statements.hpp"
 
 // Statement
-Statement::Statement() {}
+template <typename T>
+Statement<T>::Statement() {}
 
 // Statements
+template <typename T>
+Statements<T>::Statements() {}
 
-Statements::Statements() {}
-void Statements::addStatement(Statement *statement) { _statements.push_back(statement); }
+template <typename T>
+void Statements<T>::addStatement(Statement<T> *statement) { _statements.push_back(statement); }
 
-void Statements::print() {
+template <typename T>
+void Statements<T>::print() {
     for (auto s: _statements)
         s->print();
 }
 
-void Statements::evaluate(SymTab &symTab) {
+template <typename T>
+void Statements<T>::evaluate(SymTab<T> &symTab) {
     for (auto s: _statements)
         s->evaluate(symTab);
 }
 
 // AssignmentStatement
-
 template <typename T>
 AssignmentStatement<T>::AssignmentStatement() : _lhsVariable{""}, _rhsExpression{nullptr} {}
 
@@ -32,9 +36,16 @@ AssignmentStatement<T>::AssignmentStatement(std::string lhsVar, ExprNode<T> *rhs
         _lhsVariable{lhsVar}, _rhsExpression{rhsExpr} {}
 
 template <typename T>
-void AssignmentStatement<T>::evaluate(SymTab &symTab) {
-    int rhs = rhsExpression()->evaluate(symTab);
-    symTab.setValueFor(lhsVariable(), rhs);
+void AssignmentStatement<T>::evaluate(SymTab<T> &symTab) {
+		std::cout << "evaluating\n";
+		if (rhsExpression()->token().isStr()) {
+			auto value = rhsExpression()->token().getStr();
+			symTab.setValueFor(lhsVariable(), value);
+		}
+		else {
+    	auto rhs = rhsExpression()->evaluate(symTab);
+    	symTab.setValueFor(lhsVariable(), rhs);
+		}
 }
 
 template <typename T>
@@ -68,10 +79,19 @@ ExprNode<T> *&PrintStatement<T>::valueVariable() {
 }
 
 template <typename T>
-void PrintStatement<T>::evaluate(SymTab &symTab){
-  //int val = valueVariable()->evaluate(symTab);
-  int val = symTab.getValueFor(_Variable);
-	std::cout << val << std::endl;
+void PrintStatement<T>::evaluate(SymTab<T> &symTab){
+	//do the if desc->type is num when adding string support
+	TypeDesc *desc    = symTab.getValueFor(_Variable);
+	if ( desc->type() == TypeDesc::INTEGER) {
+		NumDesc  *numDesc = dynamic_cast<NumDesc *>(desc);
+		int val = numDesc->value.intVal;
+		std::cout << val << std::endl;
+	}
+	else if (desc->type() == TypeDesc::STRING) {
+		StrDesc  *sDesc = dynamic_cast<StrDesc *>(desc);
+		std::string val = sDesc->strVal();
+		std::cout << val << std::endl;
+	}
 	return ;
 }
 
@@ -86,7 +106,7 @@ template <typename T>
 ForStatement<T>::ForStatement() : assignStmt{nullptr}, assignStmtTwo{nullptr}, stmts{nullptr}, exprNode{nullptr} {}
 
 template <typename T>
-ForStatement<T>::ForStatement(AssignmentStatement<T> *_assignStmt, ExprNode<T> *_exprNode, AssignmentStatement<T> *_assignStmtTwo, Statements *_stmts) {
+ForStatement<T>::ForStatement(AssignmentStatement<T> *_assignStmt, ExprNode<T> *_exprNode, AssignmentStatement<T> *_assignStmtTwo, Statements<T> *_stmts) {
 	assignStmt = _assignStmt;
 	exprNode   = _exprNode; assignStmtTwo = _assignStmtTwo;
 	stmts      = _stmts;
@@ -108,7 +128,7 @@ ExprNode<T> *&ForStatement<T>::getRelExpr() {
 }
 
 template <typename T>
-void ForStatement<T>::evaluate(SymTab &symTab) {
+void ForStatement<T>::evaluate(SymTab<T> &symTab) {
 	assignStmt->evaluate(symTab);
 	while(exprNode->evaluate(symTab)) {
 		assignStmtTwo->evaluate(symTab);
@@ -132,3 +152,5 @@ void ForStatement<T>::print() {
 template class ForStatement<int>;
 template class AssignmentStatement<int>;
 template class PrintStatement<int>;
+template class Statements<int>;
+template class Statement<int>;
