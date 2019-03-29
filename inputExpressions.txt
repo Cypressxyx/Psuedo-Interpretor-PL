@@ -1,6 +1,5 @@
-a = "hi"
-b = "cs"
-c = a + b
-for i in range(0,2):
+a = "s"
+for i in range(0,3):
     print i
-a = c
+    print a
+b=1 

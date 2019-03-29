@@ -20,11 +20,13 @@ struct NumDesc: public TypeDesc {
 	union {
 		int intVal;
 	} value;
+	int getVal() { return value.intVal;}
 };
 
 struct StrDesc: public TypeDesc {
 	StrDesc(types type, std::string val);
 	std::string strVal();
+	std::string getVal() { return _val;}
 	
 	private:
 		std::string _val;

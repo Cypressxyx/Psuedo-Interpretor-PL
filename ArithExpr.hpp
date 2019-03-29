@@ -106,5 +106,6 @@ private:
 	std::vector<ExprNode *> *_iters;
 	int step;
 	int endVal;
+	int startVal;
 };
 #endif //EXPRINTER_ARITHEXPR_HPP

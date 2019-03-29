@@ -224,7 +224,6 @@ void ForSequence::setIters(std::vector <ExprNode *> *iters) {
 } 
 
 void ForSequence::initIters(SymTab &symTab){
-	int startVal;
 	ExprNode *inc;
 	ExprNode *end;
 	ExprNode *begin;
@@ -243,9 +242,9 @@ void ForSequence::initIters(SymTab &symTab){
 			endVal   = end->evaluate(symTab);
 			break;
 		case 3: //begin,end,step specified
-	    begin = _iters[0][0];
-			end   = _iters[0][1];
-			inc   = _iters[0][2];
+	    begin    = _iters[0][0];
+			end      = _iters[0][1];
+			inc      = _iters[0][2];
 			startVal = begin->evaluate(symTab);
 			endVal   = end->evaluate(symTab);
 			step     = inc->evaluate(symTab);
@@ -255,17 +254,12 @@ void ForSequence::initIters(SymTab &symTab){
 }
 
 int ForSequence::evaluate(SymTab &symTab) {
-	TypeDesc *desc = symTab.getValueFor(token().getName()); 
-	NumDesc *nDesc = dynamic_cast<NumDesc *>(desc);
-	int currVal = nDesc->value.intVal;	
-	//std::cout << "intial vaue is: " << currVal << std::endl;
+	//std::cout << "intial vaue is: " << startVal << std::endl;
 	//std::cout << "end vaue is: " << endVal << std::endl;
-
-	symTab.setValueFor(token().getName(), currVal + step);
-	return currVal < endVal;
+	int res = startVal < endVal;
+	startVal += step;
+	symTab.setValueFor(token().getName(), startVal - 1);
+	return res;
 }
 
 std::string ForSequence::strEval(SymTab &symTab) {return "";}
-
-	
-

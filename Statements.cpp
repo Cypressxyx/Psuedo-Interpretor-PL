@@ -108,50 +108,37 @@ ExprNode *&PrintStatement::valueVariable() {
 	return value;
 }
 
- 
-void PrintStatement::evaluate(SymTab &symTab){
-	TypeDesc *desc    = symTab.getValueFor(_Variable);
-	if ( desc->type() == TypeDesc::INTEGER) {
-		NumDesc  *numDesc = dynamic_cast<NumDesc *>(desc);
-		int val = numDesc->value.intVal;
-		std::cout << val << std::endl;
-	}
-	else if (desc->type() == TypeDesc::STRING) {
-		StrDesc  *sDesc = dynamic_cast<StrDesc *>(desc);
-		std::string val = sDesc->strVal();
-		std::cout << val << std::endl;
-	}
-	return ;
+template <typename T>
+void printDesc(TypeDesc *desc) {
+	T *_desc  = dynamic_cast<T *>(desc);
+	std::cout << _desc->getVal() << std::endl;	
 }
 
+void PrintStatement::evaluate(SymTab &symTab){
+	TypeDesc *desc = symTab.getValueFor(_Variable);
+	desc->type() == TypeDesc::INTEGER ? printDesc<NumDesc>(desc) : printDesc<StrDesc>(desc);
+	return ;
+}
  
 void PrintStatement::print() {
 	std::cout << "print " << _Variable << std::endl;
 }
 
-
-//For Statement
- 
+/*For Statement */
 ForStatement::ForStatement() : _seq{nullptr}, _stmts{nullptr} {}
-
  
 ForStatement::ForStatement(ForSequence *seq, Statements *stmts) {
 	_seq   = seq;
 	_stmts = stmts;
 }
-
  
 void ForStatement::evaluate(SymTab &symTab) {
 	_seq->initIters(symTab);
-	//std::cout << _seq->evaluate(symTab) << std::endl;
-	while(_seq->evaluate(symTab)) {
+	while(_seq->evaluate(symTab))
 		_stmts->evaluate(symTab);
-	}
-};
-
+}
  
 void ForStatement::print() {
-	std::cout << "for i in range():"; 
-	//assignStmt->print(); 
+	std::cout << "for i in range():\n"; 
 	_stmts->print();
 }
