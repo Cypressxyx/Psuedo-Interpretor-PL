@@ -5,6 +5,7 @@
 #ifndef EXPRINTER_ARITHEXPR_HPP
 #define EXPRINTER_ARITHEXPR_HPP
 
+#include <vector>
 #include "Token.hpp"
 #include "SymTab.hpp"
 #include "TypeDesc.hpp"
@@ -91,5 +92,19 @@ public:
 	virtual void print();
 	virtual int evaluate(SymTab &symTab);
 	virtual std::string strEval(SymTab &symTab);
+};
+
+class ForSequence: public ExprNode {
+public:
+	ForSequence(Token);
+	void setIters(std::vector<ExprNode *> *iters);
+	void initIters(SymTab &symTab);
+	virtual void print();
+	virtual int evaluate(SymTab &symTab);
+	virtual std::string strEval(SymTab &symTab);
+private:
+	std::vector<ExprNode *> *_iters;
+	int step;
+	int endVal;
 };
 #endif //EXPRINTER_ARITHEXPR_HPP

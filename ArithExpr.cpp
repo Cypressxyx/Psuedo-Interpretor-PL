@@ -210,3 +210,46 @@ std::string Str::strEval(SymTab &symTab) {
 	std::cout << token().getStr() << std::endl;
 	return token().getStr();
 }
+
+/* Sequence node for For loops */
+ForSequence::ForSequence(Token _tok): ExprNode{_tok}, _iters{nullptr} {}
+
+void ForSequence::print() {
+	for (auto i: *_iters)
+		i->print();
+}
+
+void ForSequence::setIters(std::vector <ExprNode *> *iters) {
+	 _iters = iters;
+} 
+
+void ForSequence::initIters(SymTab &symTab){
+	ExprNode *begin = _iters[0][0];
+	ExprNode *end = _iters[0][1];
+	endVal = end->evaluate(symTab);
+
+	if ( _iters->size() < 3) { //implicit increment of 1
+		step = 1;
+	}
+	else {
+		ExprNode *inc = _iters[0][2];
+		step = inc->evaluate(symTab);
+	}
+	symTab.setValueFor(token().getName(), begin->evaluate(symTab));
+}
+
+int ForSequence::evaluate(SymTab &symTab) {
+	TypeDesc *desc = symTab.getValueFor(token().getName()); 
+	NumDesc *nDesc = dynamic_cast<NumDesc *>(desc);
+	int currVal = nDesc->value.intVal;	
+	//std::cout << "intial vaue is: " << currVal << std::endl;
+	//std::cout << "end vaue is: " << endVal << std::endl;
+
+	symTab.setValueFor(token().getName(), currVal + step);
+	return currVal < endVal;
+}
+
+std::string ForSequence::strEval(SymTab &symTab) {return "";}
+
+	
+

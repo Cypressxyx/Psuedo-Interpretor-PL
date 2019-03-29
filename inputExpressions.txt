@@ -1,6 +1,6 @@
 a = "hi"
-b = "s"
+b = "cs"
 c = a + b
-for i in range(3):
- print c
-
+for i in range(0,4):
+    print i
+a = c

@@ -31,6 +31,8 @@ public:
 		std::string relOp() { return _relOp; }
 
     bool isSemiColon() const { return _symbol == ';'; }
+    bool isColon() const { return _symbol == ':'; }
+    bool isComma()     const { return _symbol == ','; }
     bool isAssignmentOperator() const              { return _symbol == '='; }
     bool isMultiplicationOperator() const { return _symbol == '*'; }
     bool isAdditionOperator() const       { return _symbol == '+'; }

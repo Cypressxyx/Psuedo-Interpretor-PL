@@ -51,6 +51,7 @@ class AssignmentStatement : public Statement {
 public:
     AssignmentStatement();
     AssignmentStatement(std::string lhsVar, ExprNode *rhsExpr);
+    AssignmentStatement(std::string lhsVar);
 
     std::string &lhsVariable();
     ExprNode *&rhsExpression();
@@ -82,19 +83,14 @@ private:
 class ForStatement: public Statement {
 public:
 	ForStatement();
-	ForStatement(AssignmentStatement *, ExprNode *, AssignmentStatement *, Statements *);
-  AssignmentStatement *&getAssignStmt();
-  AssignmentStatement *&getAssignStmtTwo();
-  ExprNode *&getRelExpr();
+	ForStatement(ForSequence *seq, Statements *);
   Statements *&getSmts();
 	//ForStatement(std::string var, exprNode *);
-	virtual void evaluate(SymTab &symTab);
+	virtual void evaluate(SymTab &);
 	virtual void print();
 private:
-	AssignmentStatement *assignStmt;
-	AssignmentStatement *assignStmtTwo;
-	Statements *stmts;
-	ExprNode *exprNode;
+	Statements *_stmts;
+	ForSequence *_seq;
 
 };
 

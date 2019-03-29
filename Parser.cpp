@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <iostream>
+#include <map> 
 
 #include "Token.hpp"
 #include "Parser.hpp"
@@ -60,46 +61,49 @@ Statements *Parser::statements() {
  
 ForStatement *Parser::forStatement() {
 	Token tok = tokenizer.getToken();
-	if (!tok.isOpenParen())
-		die("Parser::forStatement","Expected a ( token, instead got", tok);
-	
-	AssignmentStatement *assignStmt = assignStatement();
-	tok = tokenizer.getToken();	
-	if(!tok.isSemiColon())
-		die("Parser::forStatement","Expected a ; token, instead got", tok);
-	
-	ExprNode *relExprNode = relExpr();
-	tok = tokenizer.getToken();	
-	if(!tok.isSemiColon())
-		die("Parser::forStatement","Expected a ; token, instead got", tok);
+  ForSequence *seq = new ForSequence(tok);
+	if (!tok.isName())
+		die("Parser::forStatement","Expected an <id> token, instead got", tok);
 
-	AssignmentStatement *assignStmtTwo = assignStatement();
-	tok = tokenizer.getToken();	
+	std::string iterToks[5] = {"in", "range", "(", ")", ":"};
+	for (int i = 0; i < 3; i++) {
+		tok = tokenizer.getToken();	
+		if(!tok.isName() && !(tok.getName()).compare(iterToks[i]))
+			die("Parser::forStatement","Expected " + iterToks[i] + " instead got", tok);
+	}
+
+	std::vector<ExprNode *> *iters = new std::vector<ExprNode *>;
+	for (int i = 0; i < 3; i++) {
+    ExprNode *expr = primary();
+		iters->push_back(expr);
+		tok = tokenizer.getToken();
+	  tok.print();
+		if (!tok.isComma())
+			break;
+	}
+	seq->setIters(iters);
 	if (!tok.isCloseParen())
 		die("Parser::forStatement","Expected a ) token, instead got", tok);
-
+	
 	tok = tokenizer.getToken();	
-	if (!tok.isOpenBracket())
-		die("Parser::forStatement","Expected a { token, instead got", tok);
+	if (!tok.isColon())
+		die("Parser::forStatement","Expected a : token, instead got", tok);
+	
 
 	tok = tokenizer.getToken();
 	if (!tok.isIndent()) 
 		die("Parser::forStatement","Expected an indent token, instead got", tok);
-
+	std::cout << "statements being parsed now\n";
 	Statements *stmts = statements();
 
 	tok = tokenizer.getToken();	
 	if (!tok.isDedent())
 		die("Parser::forStatement","Expected a dedent token, instead got", tok);
 
-	tok = tokenizer.getToken();	
-	if (!tok.isCloseBracket())
-		die("Parser::forStatement","Expected a } token, instead got", tok);
-		
-	return new ForStatement(assignStmt, relExprNode, assignStmtTwo, stmts);
+	//return new ForStatement(assignStmt, relExprNode, assignStmtTwo, stmts);
+	return new ForStatement(seq, stmts);
 }
 
- 
 PrintStatement *Parser::printStatement() {
 	Token tok = tokenizer.getToken();
 	if (!tok.isName())
@@ -118,11 +122,7 @@ AssignmentStatement *Parser::assignStatement() {
     if (!assignOp.isAssignmentOperator())
         die("Parser::assignStatement", "Expected an equal sign, instead got", assignOp);
 
-    //ExprNode *rightHandSideExpr = expr();
     ExprNode *rightHandSideExpr = relExpr();
-    //Token tok = tokenizer.getToken();
-    //if (!tok.isSemiColon())
-        //die("Parser::assignStatement", "Expected a semicolon, instead got", tok);
     return new AssignmentStatement(varName.getName(), rightHandSideExpr);
 }
 
@@ -216,7 +216,6 @@ ExprNode *Parser::primary() {
     // <primary> -> (<expr>)
 
     Token tok = tokenizer.getToken();
-
     if (tok.isWholeNumber() )
         return new WholeNumber(tok);
 

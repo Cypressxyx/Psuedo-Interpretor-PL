@@ -36,6 +36,7 @@ AssignmentStatement::AssignmentStatement() : _lhsVariable{""}, _rhsExpression{nu
 AssignmentStatement::AssignmentStatement(std::string lhsVar, ExprNode *rhsExpr):
         _lhsVariable{lhsVar}, _rhsExpression{rhsExpr} {}
 
+AssignmentStatement::AssignmentStatement(std::string lhsVar): _lhsVariable{lhsVar} {}
  
 void AssignmentStatement::evaluate(SymTab &symTab) {
 		if (_Debug) 
@@ -131,48 +132,26 @@ void PrintStatement::print() {
 
 //For Statement
  
-ForStatement::ForStatement() : assignStmt{nullptr}, assignStmtTwo{nullptr}, stmts{nullptr}, exprNode{nullptr} {}
+ForStatement::ForStatement() : _seq{nullptr}, _stmts{nullptr} {}
 
  
-ForStatement::ForStatement(AssignmentStatement *_assignStmt, ExprNode *_exprNode, AssignmentStatement *_assignStmtTwo, Statements *_stmts) {
-	assignStmt = _assignStmt;
-	exprNode   = _exprNode; assignStmtTwo = _assignStmtTwo;
-	stmts      = _stmts;
-}
-
- 
-AssignmentStatement *&ForStatement::getAssignStmtTwo() {
-	return assignStmtTwo;
-}
-
- 
-AssignmentStatement *&ForStatement::getAssignStmt() {
-	return assignStmt;
-}
-
- 
-ExprNode *&ForStatement::getRelExpr() {
-	return exprNode;
+ForStatement::ForStatement(ForSequence *seq, Statements *stmts) {
+	_seq   = seq;
+	_stmts = stmts;
 }
 
  
 void ForStatement::evaluate(SymTab &symTab) {
-	assignStmt->evaluate(symTab);
-	while(exprNode->evaluate(symTab)) {
-		assignStmtTwo->evaluate(symTab);
-		stmts->evaluate(symTab);
+	_seq->initIters(symTab);
+	//std::cout << _seq->evaluate(symTab) << std::endl;
+	while(_seq->evaluate(symTab)) {
+		_stmts->evaluate(symTab);
 	}
 };
 
  
 void ForStatement::print() {
-	std::cout << "for ( "; 
-	assignStmt->print(); 
-	std::cout << "; " ;
-	exprNode->print();
-	std::cout << "; " ;
-	assignStmtTwo->print();
-	std::cout << ") {\n";
-	stmts->print();
-	std::cout << "}\n"; 
+	std::cout << "for i in range():"; 
+	//assignStmt->print(); 
+	_stmts->print();
 }

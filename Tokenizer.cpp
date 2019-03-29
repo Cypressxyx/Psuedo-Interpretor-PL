@@ -202,7 +202,7 @@ Token Tokenizer::getToken() {
 		}
     else if( c == '+' || c == '-' || c == '*' || c == '/' || c == '%')
         token.symbol(c);
-    else if( c == ';' )
+    else if( c == ';' || c == ':' || c == ',' || c == '_' )
         token.symbol(c);
     else if( c == '(' || c == ')')
         token.symbol(c);

@@ -16,6 +16,8 @@ void Token::print() const {
     else if( isCloseBracket() )  std::cout <<"}";
     else if( isAssignmentOperator() )  std::cout <<"=";
     else if( isSemiColon() )  std::cout <<";";
+    else if( isComma() )  std::cout <<",";
+    else if( isColon() )  std::cout <<":";
     else if( isMultiplicationOperator() )  std::cout <<"*";
     else if( isAdditionOperator() )  std::cout <<"+";
     else if( isSubtractionOperator() )  std::cout <<"-";
