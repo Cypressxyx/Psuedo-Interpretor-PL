@@ -224,18 +224,34 @@ void ForSequence::setIters(std::vector <ExprNode *> *iters) {
 } 
 
 void ForSequence::initIters(SymTab &symTab){
-	ExprNode *begin = _iters[0][0];
-	ExprNode *end = _iters[0][1];
-	endVal = end->evaluate(symTab);
-
-	if ( _iters->size() < 3) { //implicit increment of 1
-		step = 1;
+	int startVal;
+	ExprNode *inc;
+	ExprNode *end;
+	ExprNode *begin;
+	switch(_iters->size()) {
+		case 1: //only end was specified
+			startVal = 0;
+			step     = 1;
+			end      = _iters[0][0];
+			endVal   = end->evaluate(symTab);
+			break;
+		case 2: // begin and end specified
+	    begin    = _iters[0][0];
+			end      = _iters[0][1];
+			step     = 1;
+			startVal = begin->evaluate(symTab);
+			endVal   = end->evaluate(symTab);
+			break;
+		case 3: //begin,end,step specified
+	    begin = _iters[0][0];
+			end   = _iters[0][1];
+			inc   = _iters[0][2];
+			startVal = begin->evaluate(symTab);
+			endVal   = end->evaluate(symTab);
+			step     = inc->evaluate(symTab);
+			break;
 	}
-	else {
-		ExprNode *inc = _iters[0][2];
-		step = inc->evaluate(symTab);
-	}
-	symTab.setValueFor(token().getName(), begin->evaluate(symTab));
+	symTab.setValueFor(token().getName(), startVal);
 }
 
 int ForSequence::evaluate(SymTab &symTab) {
