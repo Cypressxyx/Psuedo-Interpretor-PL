@@ -9,6 +9,7 @@
 #include <fstream>
 #include <vector>
 #include "Token.hpp"
+#include <stack>
 
 class Tokenizer {
 
@@ -21,6 +22,7 @@ public:
 private:
     Token lastToken;
     bool ungottenToken;
+		bool parsingNewLine;
     std::ifstream &inStream;
     std::vector<Token> _tokens; 
 
@@ -28,6 +30,7 @@ private:
     std::string readString();
     std::string readName();
     int readInteger();
+		std::stack <int> stack;
 };
 
 #endif //EXPRINTER_TOKENIZER_HPP

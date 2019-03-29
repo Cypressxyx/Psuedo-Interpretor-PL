@@ -5,14 +5,15 @@
 #include <iostream>
 #include <string>
 #include "Tokenizer.hpp"
+#include <stack>
 
 std::string Tokenizer::readName() {
     // This function is called when it is known that
     // the first character in input is an alphabetic character.
     // The function reads and returns all characters of the name.
 
-    std::string name;
     char c;
+    std::string name;
     while( inStream.get(c) && (isalnum(c) || c == '_') ) {
         name += c;
     }
@@ -50,22 +51,81 @@ std::string Tokenizer::readString() {
 	return str;
 }
 
-Tokenizer::Tokenizer(std::ifstream &stream): ungottenToken{false}, inStream{stream}, lastToken{} {}
+Tokenizer::Tokenizer(std::ifstream &stream): ungottenToken{false}, inStream{stream}, lastToken{}, parsingNewLine{true} {
+	stack.push(0);
+}
+
+
+int parseIndent(std::ifstream &inStream, bool &parsingNewLine) {
+	std::cout << "\n------------------------\n";
+	std::cout << "PARSING INDENT\n";
+	std::cout << "------------------------\n";
+	char c;
+	int indentCnt = 0;
+
+	while( inStream.get(c) && isspace(c))
+		indentCnt ++;
+
+	inStream.putback(c);
+	std::cout << "indent count is: " << indentCnt << std::endl;
+	parsingNewLine = false;
+	return indentCnt;
+}
 
 Token Tokenizer::getToken() {
     if(ungottenToken) {
         ungottenToken = false;
         return lastToken;
     }
-
     char c;
-    /*
-    while( inStream.get(c) && isspace(c) && c != '\n' )  // Skip spaces but not new-line chars.
-        ;
-    */
+    Token token;
+		
+		if ( parsingNewLine ) 
+			parseIndent(inStream, parsingNewLine);
 
-    while( inStream.get(c) && isspace(c) )  // Skip spaces including the new-line chars.
-        ;
+    while( inStream.get(c) && isspace(c) ) { 
+				if ( c == '\n') {
+					int  indentCnt = parseIndent(inStream, parsingNewLine);
+					if (indentCnt > 0 || stack.size() >= 2) {
+						std::cout << indentCnt << " " << stack.top() << std::endl;
+						if (indentCnt == stack.top()) {
+							std::cout << "matching indentation parse\n";
+							inStream.get(c); //get next char to parse
+							break;
+						}
+						if ( indentCnt > stack.top()){
+							stack.push(indentCnt);
+							std::cout << stack.top() << std::endl;
+							token.indent();
+						}
+						else {
+							while(stack.size()) {
+								std::cout << "checking: " << indentCnt << " " << stack.top() << std::endl;
+								if ( indentCnt == stack.top() ) {
+									if ( stack.top() == 0 ) {
+										stack.pop();
+										token.dedent();
+									}
+									else {
+										token.dedent();
+										break;
+									}
+									//std::cout << stack.top() << std::endl;
+									break;
+								} else {
+									stack.pop();
+								}
+							}
+							if (stack.size() == 0 && indentCnt > 0) {
+								std::cout << "No indentation match. Exiting\n";
+								exit(1);
+							}
+						}
+						_tokens.push_back(token);
+						return lastToken = token;
+					}
+				}
+		}
 
     if(inStream.bad()) {
         std::cout << "Error while reading the input stream in Tokenizer.\n";
@@ -83,19 +143,16 @@ Token Tokenizer::getToken() {
 			}
 		} 
 
-    //    std::cout << "c = " << c << std::endl;
-			
-    Token token;
     if( inStream.eof()) {
         token.eof() = true;
     } else if( c == '\n' ) {
         token.eol() = true;
+				parsingNewLine = true;
     } else if( isdigit(c) ) { // a integer?
         // put the digit back into the input stream so
         // we read the entire number in a function
         inStream.putback(c);
         token.setWholeNumber( readInteger() );
-
     } 
 		else if ( c == '>') {
 			char temp = c;

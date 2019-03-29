@@ -11,30 +11,65 @@
 bool Debug = false;
 
 /*------- ExprNode ----------------*/
-template <typename T>
-ExprNode<T>::ExprNode(Token token): _token{token} {}
-
-template <typename T>
-Token ExprNode<T>::token() { return _token; }
+ExprNode::ExprNode(Token token): _token{token} {}
+Token ExprNode::token() { return _token; }
 
 /*------- InfixExprNode functions -------*/
-template <typename T>
-InfixExprNode<T>::InfixExprNode(Token tk) : ExprNode<T>{tk}, _left(nullptr), _right(nullptr) {}
+InfixExprNode::InfixExprNode(Token tk) : ExprNode{tk}, _left(nullptr), _right(nullptr) {}
+ExprNode *&InfixExprNode::left()  { return _left; }
+ExprNode *&InfixExprNode::right() { return _right; }
+
+ 
+std::string InfixExprNode::strEval(SymTab &symTab) {	
+	//try {
+		std::string lValue = left()->strEval(symTab);
+		std::string rValue = right()->strEval(symTab);
+	//} catch {
+		//exit(1);
+	//}
+	if( token().isAdditionOperator() )
+ 		return lValue + rValue;
+	std::cout << "invalid operation on strings";
+	exit(1);
+	return "";
+}
 
 template <typename T>
-ExprNode<T> *&InfixExprNode<T>::left()  { return _left; }
+int evalRelOp(T lValue, T rValue, Token token) {
+	if( token.isLessOperator()) 
+		return lValue < rValue;
+	else if( token.isGreaterOperator())	
+		return lValue > rValue;
+	else if( token.isLessThanOrEqual())
+		return lValue <= rValue;
+	else if( token.isGreaterThanOrEqual())
+		return lValue >= rValue;
+	else if( token.isEqual())
+		return lValue == rValue;
+	else if( token.isNotEqual())
+		return lValue != rValue;
+}
 
-template <typename T>
-ExprNode<T> *&InfixExprNode<T>::right() { return _right; }
-
-template <typename T>
-int InfixExprNode<T>::evaluate(SymTab<T> &symTab) {
+int InfixExprNode::evaluate(SymTab &symTab) {
     // Evaluates an infix expression using a post-order traversal of the expression tree.
-		std::cout << "evaluating an infix expr\n";
-		int lValue = left()->evaluate(symTab);
-		int rValue = right()->evaluate(symTab);
+		if ( Debug ) {
+			std::cout << "evaluating an infix expr\n";
+		}
 		
 		if ( token().isRelationalOperator() ) {
+			TypeDesc *desc = symTab.getValueFor(left()->token().getName()); 
+			if ( desc->type() == TypeDesc::STRING) {
+				std::string lValue = left()->strEval(symTab);
+				std::string rValue = right()->strEval(symTab);
+				return evalRelOp(lValue, rValue, token());
+			}
+			else {
+				int lValue = left()->evaluate(symTab);
+				int rValue = right()->evaluate(symTab);
+				return evalRelOp(lValue, rValue, token());
+			}
+
+			/*
 			if (Debug)
     		std::cout << "InfixExprNode::evaluate: " << lValue << " " << token().relOp() << " " << rValue << std::endl;
 
@@ -49,9 +84,11 @@ int InfixExprNode<T>::evaluate(SymTab<T> &symTab) {
 			else if( token().isEqual())
 				return lValue == rValue;
 			else if( token().isNotEqual())
-				return lValue != rValue;
+				return lValue != rValue;*/
 		}
 		else {
+			int lValue = left()->evaluate(symTab);
+			int rValue = right()->evaluate(symTab);
 			if (Debug)
     		std::cout << "InfixExprNode::evaluate: " << lValue << " " << token().symbol() << " " << rValue << std::endl;
 
@@ -74,49 +111,61 @@ int InfixExprNode<T>::evaluate(SymTab<T> &symTab) {
 	}
 }
 
-template <typename T>
-void InfixExprNode<T>::print() {
+ 
+void InfixExprNode::print() {
     _left->print();
     token().print();
     _right->print();
 }
 
 /*------- WholeNumber functions -------*/
-template <typename T>
-WholeNumber<T>::WholeNumber(Token token): ExprNode<T>{token} {}
+ 
+WholeNumber::WholeNumber(Token token): ExprNode{token} {}
 
-template <typename T>
-void WholeNumber<T>::print() {
+ 
+void WholeNumber::print() {
     token().print();
 }
+std::string WholeNumber::strEval(SymTab &symTab) {	
+	return "";
+}
 
-template <typename T>
-int WholeNumber<T>::evaluate(SymTab<T> &symTab) {
+ 
+int WholeNumber::evaluate(SymTab &symTab) {
 		if (Debug)
     	std::cout << "WholeNumber::evaluate: returning " << token().getWholeNumber() << std::endl;
     return token().getWholeNumber();
 }
 
-// Variable
-template <typename T>
-Variable<T>::Variable(Token token): ExprNode<T>{token} {}
+/* Variable */
+Variable::Variable(Token token): ExprNode{token} {}
 
-template <typename T>
-void Variable<T>::print() {
+void Variable::print() {
     token().print();
 }
 
-template <typename T>
-int Variable<T>::evaluate(SymTab<T> &symTab) {
+std::string Variable::strEval(SymTab &symTab) {	
+	if( ! symTab.isDefined(token().getName())) {
+ 		std::cout << "Use of undefined variable, " << token().getName() << std::endl;
+ 		exit(1);
+	}
+	TypeDesc *desc = symTab.getValueFor(token().getName());
+	StrDesc *sDesc = dynamic_cast<StrDesc *>(desc);
+	std::string value = sDesc->strVal();
+	if (Debug) { 
+ 		std::cout << "Variable::evaluate: returning " << value << std::endl;
+	}
+	return value;
+}
+ 
+int Variable::evaluate(SymTab &symTab) {
     if( ! symTab.isDefined(token().getName())) {
         std::cout << "Use of undefined variable, " << token().getName() << std::endl;
         exit(1);
     }
-
 		TypeDesc *_var = symTab.getValueFor(token().getName());
 		NumDesc *_varTwo = dynamic_cast<NumDesc *>(_var);
 		int value = _varTwo->value.intVal;
-		
 		if (Debug) { 
     	std::cout << "Variable::evaluate: returning " << value << std::endl;
 		}
@@ -124,16 +173,16 @@ int Variable<T>::evaluate(SymTab<T> &symTab) {
 }
 
 // Relational Expression
-template <typename T>
-RelExpr<T>::RelExpr(Token token): ExprNode<T>{token} {}
+RelExpr::RelExpr(Token token): ExprNode{token} {}
 
-template <typename T>
-void RelExpr<T>::print() {
+void RelExpr::print() {
 	token().print();
 }
+std::string RelExpr::strEval(SymTab &symTab) {	
+	return "";
+}
 
-template <typename T>
-int RelExpr<T>::evaluate(SymTab<T> &symTab) {
+int RelExpr::evaluate(SymTab &symTab) {
 	if ( !symTab.isDefined(token().relOp())) {
 		std::cout << "Use of undefined variable, " << token().relOp() << std::endl;
 		exit(1);
@@ -144,33 +193,20 @@ int RelExpr<T>::evaluate(SymTab<T> &symTab) {
 }
 
 /* String node */
-template <typename T>
-Str<T>::Str(Token _tok): ExprNode<T>{_tok} {}
+Str::Str(Token _tok): ExprNode{_tok} {}
 
-template <typename T>
-void Str<T>::print() {
+void Str::print() {
 	token().print();
 }
 
-template <typename T>
-int Str<T>::evaluate(SymTab<T> &symTab) {
+int Str::evaluate(SymTab &symTab) {
 	if (Debug)
 		std::cout << "returning: " << token().getStr() << std::endl;
 	//return token().getStr();
 	return 1;
 }	
 
-template <typename T>
-std::string Str<T>::strEval(SymTab<T> &symTab) {
+std::string Str::strEval(SymTab &symTab) {
 	std::cout << token().getStr() << std::endl;
 	return token().getStr();
 }
-
-template class ExprNode<int>;
-template class InfixExprNode<int>;
-template class WholeNumber<int>;
-template class Variable<int>;
-template class RelExpr<int>;
-//template class Str<int>;
-//template class Str<std::string>;
-template class Str<int>;

@@ -20,9 +20,9 @@ int main(int argc, char *argv[]) {
     }
 
     Tokenizer tokenizer(inputStream);
-    Parser<int> parser(tokenizer);
-    Statements<int> *statements = parser.statements();
-    SymTab<int> symTab;
+    Parser parser(tokenizer);
+    Statements *statements = parser.statements();
+    SymTab symTab;
 
     statements->print();
     statements->evaluate(symTab);

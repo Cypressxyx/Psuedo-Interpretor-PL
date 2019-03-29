@@ -17,84 +17,84 @@
 // sure that all subclasses of Statement provide an implementation for this
 // function.
 
-template <typename T>
+ 
 class Statement {
 public:
-    Statement<T>();
+    Statement();
     virtual void print() = 0;
-    virtual void evaluate(SymTab<T> &symTab) = 0;
+    virtual void evaluate(SymTab &symTab) = 0;
 };
 
 
 // Statements is a collection of Statement. For example, all statements in a function
 // can be represented by an instance of Statements.
 
-template <typename T>
+ 
 class Statements {
 public:
-    Statements<T>();
+    Statements();
 
-    void addStatement(Statement<T> *statement);
-    void evaluate(SymTab<T> &symTab);
+    void addStatement(Statement *statement);
+    void evaluate(SymTab &symTab);
 
     void print();
 
 private:
-    std::vector<Statement<T> *> _statements;
+    std::vector<Statement *> _statements;
 };
 
 // AssignmentStatement represents the notion of an lValue having been assigned an rValue.
 // The rValue is an expression.
 
-template <typename T>
-class AssignmentStatement : public Statement<T> {
+ 
+class AssignmentStatement : public Statement {
 public:
     AssignmentStatement();
-    AssignmentStatement(std::string lhsVar, ExprNode<T> *rhsExpr);
+    AssignmentStatement(std::string lhsVar, ExprNode *rhsExpr);
 
     std::string &lhsVariable();
-    ExprNode<T> *&rhsExpression();
+    ExprNode *&rhsExpression();
 
-    virtual void evaluate(SymTab<T> &symTab);
+    virtual void evaluate(SymTab &symTab);
     virtual void print();
 
 private:
     std::string _lhsVariable;
-    ExprNode<T> *_rhsExpression;
+    ExprNode *_rhsExpression;
 };
 
 // PrintStatement represents the notion of value being printed to stdin
-template <typename T>
-class PrintStatement: public Statement<T> {
+ 
+class PrintStatement: public Statement {
 public:
 	PrintStatement();
-	PrintStatement(std::string var, ExprNode<T> *);
-  ExprNode<T> *&valueVariable();
-	virtual void evaluate(SymTab<T> &symTab);
+	PrintStatement(std::string var, ExprNode *);
+  ExprNode *&valueVariable();
+	virtual void evaluate(SymTab &symTab);
 	virtual void print();
 private:
 	std::string _Variable;
-	ExprNode<T> *value;
+	ExprNode *value;
 };
 
 // For Statement represents the notion of a loop
-template <typename T>
-class ForStatement: public Statement<T> {
+ 
+class ForStatement: public Statement {
 public:
 	ForStatement();
-	ForStatement(AssignmentStatement<T> *, ExprNode<T> *, AssignmentStatement<T> *, Statements<T> *);
-  AssignmentStatement<T> *&getAssignStmt();
-  AssignmentStatement<T> *&getAssignStmtTwo();
-  ExprNode<T> *&getRelExpr();
-  Statements<T> *&getSmts();
+	ForStatement(AssignmentStatement *, ExprNode *, AssignmentStatement *, Statements *);
+  AssignmentStatement *&getAssignStmt();
+  AssignmentStatement *&getAssignStmtTwo();
+  ExprNode *&getRelExpr();
+  Statements *&getSmts();
 	//ForStatement(std::string var, exprNode *);
-	virtual void evaluate(SymTab<T> &symTab);
+	virtual void evaluate(SymTab &symTab);
 	virtual void print();
 private:
-	AssignmentStatement<T> *assignStmt;
-	AssignmentStatement<T> *assignStmtTwo;
-	Statements<T> *stmts;
-	ExprNode<T> *exprNode;
+	AssignmentStatement *assignStmt;
+	AssignmentStatement *assignStmtTwo;
+	Statements *stmts;
+	ExprNode *exprNode;
 
 };
 

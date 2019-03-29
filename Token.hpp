@@ -1,31 +1,33 @@
-//
-// Created by Ali A. Kooshesh on 1/30/19.
-//
+/*
+ Created by Ali A. Kooshesh on 1/30/19.
+ Modified by 
+*/
 
 #ifndef EXPRINTER_TOKEN_HPP
 #define EXPRINTER_TOKEN_HPP
 #include<string>
 
 class Token {
-
 public:
     Token();
 
-    bool &eof()  { return _eof; }
-    bool &eol()  { return _eol; }
-
+    bool &eof()      { return _eof; }
+    bool &eol()      { return _eol; }
     bool eof() const { return _eof; }
-    bool eol() const  { return _eol; }
+    bool eol() const { return _eol; }
 
-    bool isOpenParen() const  { return _symbol == '('; }
-    bool isCloseParen() const { return _symbol == ')'; }
-		bool isOpenBracket() const { return _symbol == '{'; }
+    bool isOpenParen()    const { return _symbol == '('; }
+    bool isCloseParen()   const { return _symbol == ')'; }
+		bool isOpenBracket()  const { return _symbol == '{'; }
     bool isCloseBracket() const { return _symbol == '}'; }
 
     void symbol(char c) { _symbol = c; }
     char symbol() { return _symbol; }
 	
 		void relOp(std::string relOp) { _relOp = relOp; }
+		void indent() { _indent = true; }
+		void dedent() { _dedent = true; }
+
 		std::string relOp() { return _relOp; }
 
     bool isSemiColon() const { return _symbol == ';'; }
@@ -62,6 +64,8 @@ public:
 
     bool isName() const                   { return _name.length() > 0; }
 		bool isStr()  const										{ return _str.length() > 0;  }
+		bool isIndent() const									{ return _indent; }
+		bool isDedent() const									{ return _dedent; }
 		bool isKeyword() const								{ return _name == "print" || _name == "for"; }
     std::string getName() const           { return _name; }
     std::string getStr() const            { return _str; }
@@ -79,13 +83,15 @@ public:
     void print() const;
 
 private:
-		std::string _relOp;
-    std::string _name;
-		std::string _str;
+    char _symbol;
+		bool _indent;
+		bool _dedent;
     bool _eof, _eol;
     bool _isWholeNumber;
-    char _symbol;
     int _wholeNumber;
+		std::string _str;
+    std::string _name;
+		std::string _relOp;
 };
 
 #endif //EXPRINTER_TOKEN_HPP
