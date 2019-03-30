@@ -57,9 +57,6 @@ Tokenizer::Tokenizer(std::ifstream &stream): ungottenToken{false}, inStream{stre
 
 
 int parseIndent(std::ifstream &inStream, bool &parsingNewLine) {
-	std::cout << "\n------------------------\n";
-	std::cout << "PARSING INDENT\n";
-	std::cout << "------------------------\n";
 	char c;
 	int indentCnt = 0;
 
@@ -79,10 +76,13 @@ Token Tokenizer::getToken() {
     }
     char c;
     Token token;
-		
+		if (!inStream.good()) {
+			token.dedent();
+			return lastToken = token;
+			
+		}
 		if ( parsingNewLine ) 
 			parseIndent(inStream, parsingNewLine);
-
     while( inStream.get(c) && isspace(c) ) { 
 				if ( c == '\n') {
 					int  indentCnt = parseIndent(inStream, parsingNewLine);
@@ -141,8 +141,7 @@ Token Tokenizer::getToken() {
 				if(c != '#') 
 					break;
 			}
-		} 
-
+		}
     if( inStream.eof()) {
         token.eof() = true;
     } else if( c == '\n' ) {

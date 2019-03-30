@@ -16,7 +16,6 @@ void SymTab::setValueFor(std::string vName, int val) {
 		desc->value.intVal = val;
     symTab[vName] = desc;
 }
-
  
 void SymTab::setValueFor(std::string vName, std::string val) {
 	if (debug)
@@ -25,12 +24,10 @@ void SymTab::setValueFor(std::string vName, std::string val) {
 	symTab[vName] = desc;
 }
 
- 
 bool SymTab::isDefined(std::string vName) {
     return symTab.find(vName) != symTab.end();
 }
 
- 
 TypeDesc *SymTab::getValueFor(std::string vName) {
 		//int SymTab::getValueFor(std::string vName) {
     if( ! isDefined(vName)) {

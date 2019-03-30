@@ -19,14 +19,9 @@ InfixExprNode::InfixExprNode(Token tk) : ExprNode{tk}, _left(nullptr), _right(nu
 ExprNode *&InfixExprNode::left()  { return _left; }
 ExprNode *&InfixExprNode::right() { return _right; }
 
- 
 std::string InfixExprNode::strEval(SymTab &symTab) {	
-	//try {
-		std::string lValue = left()->strEval(symTab);
-		std::string rValue = right()->strEval(symTab);
-	//} catch {
-		//exit(1);
-	//}
+	std::string lValue = left()->strEval(symTab);
+	std::string rValue = right()->strEval(symTab);
 	if( token().isAdditionOperator() )
  		return lValue + rValue;
 	std::cout << "invalid operation on strings";
@@ -48,69 +43,50 @@ int evalRelOp(T lValue, T rValue, Token token) {
 		return lValue == rValue;
 	else if( token.isNotEqual())
 		return lValue != rValue;
+	std::cout <<" invalid relop.exiting\n";	
+	exit(1);
 }
 
+// Evaluates an infix expression using a post-order traversal of the expression tree.
 int InfixExprNode::evaluate(SymTab &symTab) {
-    // Evaluates an infix expression using a post-order traversal of the expression tree.
-		if ( Debug ) {
+		if ( Debug ) 
 			std::cout << "evaluating an infix expr\n";
-		}
-		
+
 		if ( token().isRelationalOperator() ) {
 			TypeDesc *desc = symTab.getValueFor(left()->token().getName()); 
 			if ( desc->type() == TypeDesc::STRING) {
 				std::string lValue = left()->strEval(symTab);
 				std::string rValue = right()->strEval(symTab);
 				return evalRelOp(lValue, rValue, token());
-			}
-			else {
+			} else {
 				int lValue = left()->evaluate(symTab);
 				int rValue = right()->evaluate(symTab);
 				return evalRelOp(lValue, rValue, token());
 			}
-
-			/*
-			if (Debug)
-    		std::cout << "InfixExprNode::evaluate: " << lValue << " " << token().relOp() << " " << rValue << std::endl;
-
-			if( token().isLessOperator()) 
-				 return lValue < rValue;
-			else if( token().isGreaterOperator())	
-				return lValue > rValue;
-			else if( token().isLessThanOrEqual())
-				return lValue <= rValue;
-			else if( token().isGreaterThanOrEqual())
-				return lValue >= rValue;
-			else if( token().isEqual())
-				return lValue == rValue;
-			else if( token().isNotEqual())
-				return lValue != rValue;*/
 		}
+
 		else {
 			int lValue = left()->evaluate(symTab);
 			int rValue = right()->evaluate(symTab);
 			if (Debug)
     		std::cout << "InfixExprNode::evaluate: " << lValue << " " << token().symbol() << " " << rValue << std::endl;
-
-    if( token().isAdditionOperator() )
-        return lValue + rValue;
-    else if(token().isSubtractionOperator())
-        return lValue - rValue;
-    else if(token().isMultiplicationOperator())
-        return lValue * rValue;
-    else if(token().isDivisionOperator())
-        return lValue / rValue; // division by zero?
-    else if( token().isModuloOperator() )
-        return lValue % rValue;
-		 else {
-        std::cout << "InfixExprNode::evaluate: don't know how to evaluate this operator\n";
-        token().print();
-        std::cout << std::endl;
-        exit(2);
-    }
-	}
+    	if( token().isAdditionOperator() )
+      	return lValue + rValue;
+			else if(token().isSubtractionOperator())
+     		return lValue - rValue;
+			else if(token().isMultiplicationOperator())
+     		return lValue * rValue;
+			else if(token().isDivisionOperator())
+     		return lValue / rValue; // division by zero?
+			else if( token().isModuloOperator() )
+     		return lValue % rValue;
+		 	else {
+     		std::cout << "InfixExprNode::evaluate: Invalid Operation";
+      	token().print();
+        exit(1);
+    	}
+		}
 }
-
  
 void InfixExprNode::print() {
     _left->print();
@@ -119,17 +95,15 @@ void InfixExprNode::print() {
 }
 
 /*------- WholeNumber functions -------*/
- 
 WholeNumber::WholeNumber(Token token): ExprNode{token} {}
 
- 
 void WholeNumber::print() {
     token().print();
 }
+
 std::string WholeNumber::strEval(SymTab &symTab) {	
 	return "";
 }
-
  
 int WholeNumber::evaluate(SymTab &symTab) {
 		if (Debug)
@@ -144,35 +118,38 @@ void Variable::print() {
     token().print();
 }
 
+template <typename T>
+auto evalHelper(TypeDesc *_desc, SymTab &symTab) {
+	T *tDesc = dynamic_cast<T *>(_desc);
+	auto value = tDesc->getVal();
+	return value;
+}
+
 std::string Variable::strEval(SymTab &symTab) {	
 	if( ! symTab.isDefined(token().getName())) {
  		std::cout << "Use of undefined variable, " << token().getName() << std::endl;
  		exit(1);
 	}
 	TypeDesc *desc = symTab.getValueFor(token().getName());
-	StrDesc *sDesc = dynamic_cast<StrDesc *>(desc);
-	std::string value = sDesc->strVal();
-	if (Debug) { 
- 		std::cout << "Variable::evaluate: returning " << value << std::endl;
-	}
+	std::string value = evalHelper<StrDesc>(desc, symTab);
+	if (Debug)
+		std::cout << "Variable::evaluate: returning " << value << std::endl;
 	return value;
 }
  
 int Variable::evaluate(SymTab &symTab) {
-    if( ! symTab.isDefined(token().getName())) {
-        std::cout << "Use of undefined variable, " << token().getName() << std::endl;
-        exit(1);
-    }
-		TypeDesc *_var = symTab.getValueFor(token().getName());
-		NumDesc *_varTwo = dynamic_cast<NumDesc *>(_var);
-		int value = _varTwo->value.intVal;
-		if (Debug) { 
-    	std::cout << "Variable::evaluate: returning " << value << std::endl;
-		}
-    return value;
+	if( ! symTab.isDefined(token().getName())) {
+		std::cout << "Use of undefined variable, " << token().getName() << std::endl;
+		exit(1);
+	}
+	TypeDesc *desc = symTab.getValueFor(token().getName());
+	int value = evalHelper<NumDesc>(desc, symTab);
+	if (Debug)
+		std::cout << "Variable::evaluate: returning " << value << std::endl;
+	return value;
 }
 
-// Relational Expression
+/* Relational Expression */
 RelExpr::RelExpr(Token token): ExprNode{token} {}
 
 void RelExpr::print() {
@@ -254,12 +231,13 @@ void ForSequence::initIters(SymTab &symTab){
 }
 
 int ForSequence::evaluate(SymTab &symTab) {
-	//std::cout << "intial vaue is: " << startVal << std::endl;
-	//std::cout << "end vaue is: " << endVal << std::endl;
 	int res = startVal < endVal;
-	startVal += step;
-	symTab.setValueFor(token().getName(), startVal - 1);
+	res ? next(symTab) : symTab.setValueFor(token().getName(), startVal - 1);
 	return res;
+}
+
+void ForSequence::next(SymTab &symTab) {
+	symTab.setValueFor(token().getName(), startVal+=step);
 }
 
 std::string ForSequence::strEval(SymTab &symTab) {return "";}

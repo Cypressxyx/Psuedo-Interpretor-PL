@@ -36,26 +36,25 @@ Statements *Parser::statements() {
     Statements *stmts = new Statements();
     Token tok = tokenizer.getToken();
     while (tok.isName()) {
-				if (tok.isKeyword()) { //use catch instead
-					if (tok.getName() == "print") {
-						PrintStatement *printStmt = printStatement();
-						stmts->addStatement(printStmt);
-						tok = tokenizer.getToken();
-					} else {
-						ForStatement *forStmt = forStatement();
-						stmts->addStatement(forStmt);
-						tok = tokenizer.getToken();
-					}
+			if (tok.isKeyword()) {
+				if (tok.getName() == "print") {
+					PrintStatement *printStmt = printStatement();
+					stmts->addStatement(printStmt);
+					tok = tokenizer.getToken();
+				} else {
+					ForStatement *forStmt = forStatement();
+					stmts->addStatement(forStmt);
+					tok = tokenizer.getToken();
 				}
-				else {
-        	tokenizer.ungetToken();
-        	AssignmentStatement *assignStmt = assignStatement();
-        	stmts->addStatement(assignStmt);
-        	tok = tokenizer.getToken();
-				}
+			} else {
+				tokenizer.ungetToken();
+				AssignmentStatement *assignStmt = assignStatement();
+				stmts->addStatement(assignStmt);
+				tok = tokenizer.getToken();
+			}
     }
-    tokenizer.ungetToken();
-    return stmts;
+		tokenizer.ungetToken();
+		return stmts;
 }
 
  
@@ -77,7 +76,6 @@ ForStatement *Parser::forStatement() {
     ExprNode *expr = primary();
 		iters->push_back(expr);
 		tok = tokenizer.getToken();
-	  tok.print();
 		if (!tok.isComma())
 			break;
 	}
@@ -114,16 +112,16 @@ PrintStatement *Parser::printStatement() {
 
  
 AssignmentStatement *Parser::assignStatement() {
-    Token varName = tokenizer.getToken();
-    if (!varName.isName())
-        die("Parser::assignStatement", "Expected a name token, instead got", varName);
+	Token varName = tokenizer.getToken();
+	if (!varName.isName())
+		die("Parser::assignStatement", "Expected a name token, instead got", varName);
 
-    Token assignOp = tokenizer.getToken();
-    if (!assignOp.isAssignmentOperator())
-        die("Parser::assignStatement", "Expected an equal sign, instead got", assignOp);
+	Token assignOp = tokenizer.getToken();
+		if (!assignOp.isAssignmentOperator())
+			die("Parser::assignStatement", "Expected an equal sign, instead got", assignOp);
 
-    ExprNode *rightHandSideExpr = relExpr();
-    return new AssignmentStatement(varName.getName(), rightHandSideExpr);
+	ExprNode *rightHandSideExpr = relExpr();
+	return new AssignmentStatement(varName.getName(), rightHandSideExpr);
 }
 
  

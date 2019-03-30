@@ -41,9 +41,10 @@ AssignmentStatement::AssignmentStatement(std::string lhsVar): _lhsVariable{lhsVa
 void AssignmentStatement::evaluate(SymTab &symTab) {
 		if (_Debug) 
 			std::cout << "evaluating\n";
+		Token rhsTok = rhsExpression()->token();
 
-		if (rhsExpression()->token().isName()) { //handle variable assignmenst
-			TypeDesc *desc = symTab.getValueFor(rhsExpression()->token().getName()); 
+		if (rhsTok.isName()) { //handle variable assignmenst
+			TypeDesc *desc = symTab.getValueFor(rhsTok.getName()); 
 			if (desc->type() == TypeDesc::STRING) {
     		auto rhs = rhsExpression()->strEval(symTab);
 				symTab.setValueFor(lhsVariable(), rhs);
@@ -52,11 +53,12 @@ void AssignmentStatement::evaluate(SymTab &symTab) {
 				symTab.setValueFor(lhsVariable(), rhs);
 			}
 		}
-		else if (rhsExpression()->token().isStr()) {  //handle string assignments
+
+		else if (rhsTok.isStr()) {  //handle string assignments
     	auto rhs = rhsExpression()->strEval(symTab);
 			symTab.setValueFor(lhsVariable(), rhs);
 		}
-		else if (rhsExpression()->token().isWholeNumber()) { //handle whole numbers
+		else if (rhsTok.isWholeNumber()) { //handle whole numbers
 			auto rhs = rhsExpression()->evaluate(symTab);
 			symTab.setValueFor(lhsVariable(), rhs);
 		}
@@ -134,7 +136,7 @@ ForStatement::ForStatement(ForSequence *seq, Statements *stmts) {
  
 void ForStatement::evaluate(SymTab &symTab) {
 	_seq->initIters(symTab);
-	while(_seq->evaluate(symTab))
+	while(_seq->evaluate(symTab)) 
 		_stmts->evaluate(symTab);
 }
  

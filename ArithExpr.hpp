@@ -99,6 +99,7 @@ public:
 	ForSequence(Token);
 	void setIters(std::vector<ExprNode *> *iters);
 	void initIters(SymTab &symTab);
+	void next(SymTab &symTab);
 	virtual void print();
 	virtual int evaluate(SymTab &symTab);
 	virtual std::string strEval(SymTab &symTab);

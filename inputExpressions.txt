@@ -1,5 +1,7 @@
-a = "s"
+a = 2
+#s
 for i in range(0,3):
-    print i
-    print a
-b=1 
+ for j in range(0,3):
+  print i
+x = 2
+print x
