@@ -1,7 +1,3 @@
-a = 2
-#s
-for i in range(0,3):
- for j in range(0,3):
-  print i
-x = 2
-print x
+a = 10
+b = 20
+print "a =", a, "b =", b, "and the sum of the two is", a + b

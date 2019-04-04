@@ -51,7 +51,7 @@ std::string Tokenizer::readString() {
 	return str;
 }
 
-Tokenizer::Tokenizer(std::ifstream &stream): ungottenToken{false}, inStream{stream}, lastToken{}, parsingNewLine{true} {
+Tokenizer::Tokenizer(std::ifstream &stream): ungottenToken{false}, inStream{stream}, lastToken{}, parsingNewLine{false} {
 	stack.push(0);
 }
 
@@ -64,7 +64,6 @@ int parseIndent(std::ifstream &inStream, bool &parsingNewLine) {
 		indentCnt ++;
 
 	inStream.putback(c);
-	std::cout << "indent count is: " << indentCnt << std::endl;
 	parsingNewLine = false;
 	return indentCnt;
 }
@@ -79,28 +78,35 @@ Token Tokenizer::getToken() {
 		if (!inStream.good()) {
 			token.dedent();
 			return lastToken = token;
-			
 		}
-		if ( parsingNewLine ) 
-			parseIndent(inStream, parsingNewLine);
+			
     while( inStream.get(c) && isspace(c) ) { 
-				if ( c == '\n') {
-					int  indentCnt = parseIndent(inStream, parsingNewLine);
+				if ( c == '\n') 
+					break;
+				if (parsingNewLine) {	
+					parsingNewLine = false;
+					inStream.putback(c);
+					int indentCnt = parseIndent(inStream, parsingNewLine);
+					if (indentCnt == 1 && stack.size() == 1) {
+						inStream.get(c);
+						break;
+					}
 					if (indentCnt > 0 || stack.size() >= 2) {
-						std::cout << indentCnt << " " << stack.top() << std::endl;
-						if (indentCnt == stack.top()) {
-							std::cout << "matching indentation parse\n";
+						if (indentCnt == stack.top()) { //matching indents
 							inStream.get(c); //get next char to parse
 							break;
 						}
-						if ( indentCnt > stack.top()){
+
+						if ( indentCnt > stack.top()){ //bigger indent
 							stack.push(indentCnt);
 							std::cout << stack.top() << std::endl;
 							token.indent();
 						}
+
 						else {
+							if (indentCnt == 0) 
+								break;
 							while(stack.size()) {
-								std::cout << "checking: " << indentCnt << " " << stack.top() << std::endl;
 								if ( indentCnt == stack.top() ) {
 									if ( stack.top() == 0 ) {
 										stack.pop();
@@ -126,7 +132,15 @@ Token Tokenizer::getToken() {
 					}
 				}
 		}
-
+		if ( parsingNewLine && stack.size() > 1) {	
+			std::cout << "dendeting\n";
+			inStream.putback(c);
+			while(stack.size() != 1) 
+				stack.pop();
+			token.dedent();
+			_tokens.push_back(token);
+			return lastToken = token;
+		}
     if(inStream.bad()) {
         std::cout << "Error while reading the input stream in Tokenizer.\n";
         exit(1);

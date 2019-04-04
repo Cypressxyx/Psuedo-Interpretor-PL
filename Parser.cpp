@@ -41,9 +41,14 @@ Statements *Parser::statements() {
 					PrintStatement *printStmt = printStatement();
 					stmts->addStatement(printStmt);
 					tok = tokenizer.getToken();
-				} else {
+				} else if (tok.getName() == "for") {
 					ForStatement *forStmt = forStatement();
 					stmts->addStatement(forStmt);
+					tok = tokenizer.getToken();
+				}
+				else if (tok.getName() == "if") {
+					IfStmt *_ifStmt = ifStmt();
+					stmts->addStatement(_ifStmt);
 					tok = tokenizer.getToken();
 				}
 			} else {
@@ -103,24 +108,87 @@ ForStatement *Parser::forStatement() {
 }
 
 PrintStatement *Parser::printStatement() {
+	std::vector <ExprNode *> *nodes = new std::vector<ExprNode *>;
+	ExprNode *value = relExpr();
+	nodes->push_back(value);
 	Token tok = tokenizer.getToken();
-	if (!tok.isName())
-		die("Parser::assignStatement","Expeceted a name token, instead got", tok);
-	ExprNode *value = new Variable(tok);
-	return new PrintStatement(tok.getName(), value);
+	while(tok.isComma()) {
+		ExprNode *value = relExpr();
+		nodes->push_back(value);
+		tok = tokenizer.getToken();
+	}	
+	if(!tok.eol())
+		die("Parser::printStmt","Expected a eol token, instead got", tok);
+	//return new PrintStatement(tok.getName(), value);
+	//return new PrintStatement(value);
+	return new PrintStatement(nodes);
 }	
 
+IfStmt *Parser::ifStmt() {
+	std::vector <Statements *> *stmts = new std::vector<Statements *>;
+	std::vector <ExprNode *>   *relExprs = new std::vector<ExprNode *>;
+
+	ExprNode *rel = relExpr();
+	relExprs->push_back(rel);
+
+	Token tok = tokenizer.getToken();
+	if(!tok.isColon())
+		die("Parser::ifStmt","Expeceted a : token, instead got", tok);
+
+	tok = tokenizer.getToken();
+	if(!tok.eol())
+		die("Parser::ifStmt","Expeceted a eol token, instead got", tok);
+	tok = tokenizer.getToken();
+	if(!tok.isIndent())
+		die("Parser::ifStmt","Expeceted a indent token, instead got", tok);
+	
+	Statements *_stmts = statements();
+	stmts->push_back(_stmts); 
+	std::cout << "got stmts\n";
+
+	tok = tokenizer.getToken();
+	if(!tok.isDedent())
+		die("Parser::ifStmt","Expeceted a dedent token, instead got", tok);
+
+	tok = tokenizer.getToken();
+	while(tok.isElse() || tok.isElIf()) {
+		if (tok.isElIf()) {
+			ExprNode *rel = relExpr();
+			relExprs->push_back(rel);
+		}
+		tok = tokenizer.getToken();
+		if(!tok.isColon())
+			die("Parser::ifStmt","Expeceted a : token, instead got", tok);
+		tok = tokenizer.getToken();
+		if(!tok.eol())
+			die("Parser::ifStmt","Expeceted a eol token, instead got", tok);
+
+		tok = tokenizer.getToken();
+		if(!tok.isIndent())
+			die("Parser::ifStmt","Expeceted a indent token, instead got", tok);
+		Statements *_stmts = statements();
+		tok = tokenizer.getToken();
+		if(!tok.isDedent())
+			die("Parser::ifStmt","Expeceted a dedent token, instead got", tok);
+		stmts->push_back(_stmts); 
+		tok = tokenizer.getToken();
+	}
+	tokenizer.ungetToken();
+	return new IfStmt(stmts, relExprs);
+}
  
 AssignmentStatement *Parser::assignStatement() {
 	Token varName = tokenizer.getToken();
 	if (!varName.isName())
 		die("Parser::assignStatement", "Expected a name token, instead got", varName);
 
-	Token assignOp = tokenizer.getToken();
-		if (!assignOp.isAssignmentOperator())
-			die("Parser::assignStatement", "Expected an equal sign, instead got", assignOp);
-
+	Token tok = tokenizer.getToken();
+		if (!tok.isAssignmentOperator())
+			die("Parser::assignStatement", "Expected an equal sign, instead got", tok);
 	ExprNode *rightHandSideExpr = relExpr();
+	tok = tokenizer.getToken();
+	if(!tok.eol())
+		die("assignStatement", "Expected an EOL , instead got", tok);
 	return new AssignmentStatement(varName.getName(), rightHandSideExpr);
 }
 

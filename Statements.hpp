@@ -68,14 +68,17 @@ private:
  
 class PrintStatement: public Statement {
 public:
-	PrintStatement();
-	PrintStatement(std::string var, ExprNode *);
-  ExprNode *&valueVariable();
+	//PrintStatement();
+	//PrintStatement(ExprNode *);
+	//PrintStatement(std::string var, ExprNode *);
+	PrintStatement(std::vector<ExprNode *> *);
+  //ExprNode *&valueVariable();
 	virtual void evaluate(SymTab &symTab);
 	virtual void print();
 private:
-	std::string _Variable;
-	ExprNode *value;
+	//std::string _Variable;
+	std::vector <ExprNode *> *_nodes;
+	//ExprNode *value;
 };
 
 // For Statement represents the notion of a loop
@@ -92,6 +95,18 @@ private:
 	Statements *_stmts;
 	ForSequence *_seq;
 
+};
+
+// If Statement 
+class IfStmt: public Statement {
+public:
+	IfStmt();
+	IfStmt(std::vector<Statements *> *, std::vector<ExprNode *>*);
+	virtual void evaluate(SymTab &);
+	virtual void print();
+private:
+	std::vector<Statements *> *_stmts;
+	std::vector<ExprNode *> *_relNodes;
 };
 
 #endif //EXPRINTER_STATEMENTS_HPP

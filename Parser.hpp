@@ -22,6 +22,7 @@ public:
     AssignmentStatement *assignStatement();
     PrintStatement      *printStatement();
     ForStatement        *forStatement();
+    IfStmt              *ifStmt();
 
     ExprNode *relExpr();
     ExprNode *relTerm();

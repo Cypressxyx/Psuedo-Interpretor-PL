@@ -68,7 +68,9 @@ public:
 		bool isStr()  const										{ return _str.length() > 0;  }
 		bool isIndent() const									{ return _indent; }
 		bool isDedent() const									{ return _dedent; }
-		bool isKeyword() const								{ return _name == "print" || _name == "for"; }
+		bool isKeyword() const								{ return _name == "print" || _name == "for" || _name == "if"  || _name == "else" || _name == "elif"; }
+		bool isElse() const										{ return _name == "else";}
+		bool isElIf() const										{ return _name == "elif";}
     std::string getName() const           { return _name; }
     std::string getStr() const            { return _str; }
     void setName(std::string n) { _name = n; }
