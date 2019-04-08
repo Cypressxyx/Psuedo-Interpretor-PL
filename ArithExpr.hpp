@@ -74,7 +74,14 @@ public:
 	  virtual std::string strEval(SymTab &symTab);
 };
 
- 
+class BoolExpr: public ExprNode {
+public:
+	BoolExpr(Token token);
+	virtual void print();
+	virtual int evaluate(SymTab &symTab);
+	virtual std::string strEval(SymTab &symTab);
+};
+
 class RelExpr: public ExprNode {
 using ExprNode::token;
 public:

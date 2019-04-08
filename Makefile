@@ -1,13 +1,13 @@
 .SUFFIXES: .o .cpp .x
 
-CFLAGS = -ggdb -std=c++1z
+CFLAGS = -ggdb --std=c++17
 objects =  Token.o Tokenizer.o Parser.o ArithExpr.o SymTab.o Statements.o main.o TypeDesc.o
 
 statement.x: $(objects)
-	clang++ $(CFLAGS) -o statement.x $(objects)
+	g++ $(CFLAGS) -o statement.x $(objects)
 
 .cpp.o:
-	clang++ $(CFLAGS) -c $< -o $@
+	g++ $(CFLAGS) -c $< -o $@
 
 
 Token.o:  Token.cpp Token.hpp

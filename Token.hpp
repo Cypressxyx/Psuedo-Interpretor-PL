@@ -25,6 +25,7 @@ public:
     char symbol() { return _symbol; }
 	
 		void relOp(std::string relOp) { _relOp = relOp; }
+		void boolExpr(std::string expr) { _boolExpr = expr; }
 		void indent() { _indent = true; }
 		void dedent() { _dedent = true; }
 
@@ -46,6 +47,11 @@ public:
                isModuloOperator() ||
                isDivisionOperator();
     }
+
+		bool isOrExpr()	const									{ return _boolExpr == "or"; }
+		bool isAndExpr()	const								{ return _boolExpr == "and"; }
+		bool isNotExpr()	const								{ return _boolExpr == "not"; }
+		bool isBoolExpr()  const							{return _boolExpr.length() > 0; }
 
 		bool isLessOperator() const       { return _relOp == "<"  ;  }
 		bool isGreaterOperator() const    { return _relOp == ">"  ;  }
@@ -96,6 +102,7 @@ private:
 		std::string _str;
     std::string _name;
 		std::string _relOp;
+		std::string _boolExpr;
 };
 
 #endif //EXPRINTER_TOKEN_HPP

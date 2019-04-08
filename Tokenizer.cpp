@@ -7,16 +7,14 @@
 #include "Tokenizer.hpp"
 #include <stack>
 
+// This function is called when it is known that
+// the first character in input is an alphabetic character.
+// The function reads and returns all characters of the name.
 std::string Tokenizer::readName() {
-    // This function is called when it is known that
-    // the first character in input is an alphabetic character.
-    // The function reads and returns all characters of the name.
-
     char c;
     std::string name;
-    while( inStream.get(c) && (isalnum(c) || c == '_') ) {
+    while( inStream.get(c) && (isalnum(c) || c == '_') ) 
         name += c;
-    }
     if(inStream.good())  // In the loop, we have read one char too many.
         inStream.putback(c);
     return name;
@@ -40,18 +38,16 @@ int Tokenizer::readInteger() {
 std::string Tokenizer::readString() {
 	std::string str = "";
 	char c;
-	while( inStream.get(c) && c != '"') {  
+	while( inStream.get(c) && c != '"')
 		str += c;
-	}
 	if(!inStream.good()) {
 		std::cout << "Error reading string. Found EOL. Exiting...\n";
 		exit(1);
 	}
-		
 	return str;
 }
 
-Tokenizer::Tokenizer(std::ifstream &stream): ungottenToken{false}, inStream{stream}, lastToken{}, parsingNewLine{false} {
+Tokenizer::Tokenizer(std::ifstream &stream): ungottenToken{false}, inStream{stream}, lastToken{}, parsingNewLine{false}, sendDedents{false}  {
 	stack.push(0);
 }
 
@@ -69,28 +65,48 @@ int parseIndent(std::ifstream &inStream, bool &parsingNewLine) {
 }
 
 Token Tokenizer::getToken() {
-    if(ungottenToken) {
+		if (0) {
+			//std::cout << "newline is: " << parsingNewLine << std::endl;
+			std::cout << "dedent is : " << sendDedents << std::endl;
+		}
+    if(ungottenToken) {	
         ungottenToken = false;
         return lastToken;
     }
     char c;
     Token token;
-		if (!inStream.good()) {
-			token.dedent();
+		if (sendDedents) {
+			if (stack.size() <= 2) { //only have one left
+				sendDedents = false;
+			}				
+			stack.pop();
+			token.dedent();	
 			return lastToken = token;
 		}
-			
+		if (!inStream.good()) {
+			if(stack.size() > 1) {
+				// bad instream dedent\n";
+				token.dedent();
+				return lastToken = token;
+			}
+			else
+			token.eol() = true;
+			return lastToken = token;
+		}
     while( inStream.get(c) && isspace(c) ) { 
-				if ( c == '\n') 
+				if(parsingNewLine && c == '\n') {
+					inStream.get(c);
+					if(!isspace(c))
+						inStream.putback(c);
+					if(c == ' ')
+						inStream.putback(c);
+				}
+				else if ( c == '\n') 
 					break;
-				if (parsingNewLine) {	
+				else if (parsingNewLine) {	
 					parsingNewLine = false;
 					inStream.putback(c);
 					int indentCnt = parseIndent(inStream, parsingNewLine);
-					if (indentCnt == 1 && stack.size() == 1) {
-						inStream.get(c);
-						break;
-					}
 					if (indentCnt > 0 || stack.size() >= 2) {
 						if (indentCnt == stack.top()) { //matching indents
 							inStream.get(c); //get next char to parse
@@ -98,33 +114,35 @@ Token Tokenizer::getToken() {
 						}
 
 						if ( indentCnt > stack.top()){ //bigger indent
-							stack.push(indentCnt);
-							std::cout << stack.top() << std::endl;
-							token.indent();
+							if (c != '\n') {
+							  stack.push(indentCnt);
+							  token.indent();
+							}
 						}
 
-						else {
+						else { //dedent
 							if (indentCnt == 0) 
 								break;
 							while(stack.size()) {
 								if ( indentCnt == stack.top() ) {
 									if ( stack.top() == 0 ) {
+										//"sending dedent with empyr stack\n";
 										stack.pop();
 										token.dedent();
 									}
 									else {
+										//"sending dedent with stuff still in stack\n";
 										token.dedent();
 										break;
 									}
-									//std::cout << stack.top() << std::endl;
 									break;
 								} else {
 									stack.pop();
 								}
 							}
-							if (stack.size() == 0 && indentCnt > 0) {
+							if (stack.size() == 0 && indentCnt > 0) {	
 								std::cout << "No indentation match. Exiting\n";
-								exit(1);
+								exit(2);
 							}
 						}
 						_tokens.push_back(token);
@@ -133,11 +151,13 @@ Token Tokenizer::getToken() {
 				}
 		}
 		if ( parsingNewLine && stack.size() > 1) {	
-			std::cout << "dendeting\n";
 			inStream.putback(c);
-			while(stack.size() != 1) 
-				stack.pop();
+			stack.pop();
 			token.dedent();
+			if (stack.size() > 2) {
+			  sendDedents = true;
+			}
+			parsingNewLine = false;
 			_tokens.push_back(token);
 			return lastToken = token;
 		}
@@ -145,7 +165,7 @@ Token Tokenizer::getToken() {
         std::cout << "Error while reading the input stream in Tokenizer.\n";
         exit(1);
     }
-
+		parsingNewLine = false; //we are most likely in a line now where a char is next so no new line unless \n is found
 	 	if ( c == '#' ){
 			while (1) {
 				while( c != '\n' ) {
@@ -184,6 +204,8 @@ Token Tokenizer::getToken() {
 			inStream.get(c);
 			if ( c == '=' ) 
 				token.relOp("<=");
+			else if (c =='>')
+				token.relOp("!=");
 			else {
 				inStream.putback(c);
 				c = temp;
@@ -224,7 +246,11 @@ Token Tokenizer::getToken() {
     else if(isalpha(c)) {  // an identifier?
         // put c back into the stream so we can read the entire name in a function.
         inStream.putback(c);
-        token.setName( readName() );
+				std::string name = readName();
+				if (name == "and" || name == "not" || name == "or")
+					token.boolExpr(name);
+				else 
+	        token.setName( name);
     } 
 		else if ( c == '"' ) {
 			token.setString( readString() );

@@ -52,15 +52,32 @@ int InfixExprNode::evaluate(SymTab &symTab) {
 		if ( Debug ) 
 			std::cout << "evaluating an infix expr\n";
 
+		if ( token().isBoolExpr()) {
+			if (token().isNotExpr()) {
+				int val = left()->evaluate(symTab);
+				return not val;
+			}
+			int lValue = left()->evaluate(symTab);
+			int rValue = right()->evaluate(symTab);
+    	if( token().isAndExpr() )
+				return lValue && rValue;
+			else if ( token().isOrExpr())
+				return lValue || rValue;
+			else if ( token().isNotExpr())
+				return not lValue;
+		}
+
 		if ( token().isRelationalOperator() ) {	
 			TypeDesc *desc;
 			if(!symTab.isDefined(left()->token().getName())) {
-				desc = new TypeDesc(TypeDesc::INTEGER);
+				if(left()->token().isStr())
+					desc = new TypeDesc(TypeDesc::STRING);
+				else
+					desc = new TypeDesc(TypeDesc::INTEGER);
 			}
 			else {
 				desc = symTab.getValueFor(left()->token().getName()); 
 			}
-			std::cout << "evaluating relop\n";
 			if ( desc->type() == TypeDesc::STRING) {
 				std::string lValue = left()->strEval(symTab);
 				std::string rValue = right()->strEval(symTab);
@@ -128,12 +145,11 @@ void Variable::print() {
 template <typename T>
 auto evalHelper(TypeDesc *_desc, SymTab &symTab) {
 	T *tDesc = dynamic_cast<T *>(_desc);
-	auto value = tDesc->getVal();
+	auto value = tDesc->getVal();	
 	return value;
 }
 
 std::string Variable::strEval(SymTab &symTab) {	
-	std::cout << "hi\n";
 	if( ! symTab.isDefined(token().getName())) {
  		std::cout << "Use of undefined variable, " << token().getName() << std::endl;
  		exit(1);
@@ -156,6 +172,18 @@ int Variable::evaluate(SymTab &symTab) {
 		std::cout << "Variable::evaluate: returning " << value << std::endl;
 	return value;
 }
+/* Boolean Expression */
+BoolExpr::BoolExpr(Token token): ExprNode{token} {}
+
+void BoolExpr::print() {
+	token().print();
+}
+
+std::string BoolExpr::strEval(SymTab &symTab) {	return ""; }
+
+int BoolExpr::evaluate(SymTab &symTab) {
+	return 1;
+}
 
 /* Relational Expression */
 RelExpr::RelExpr(Token token): ExprNode{token} {}
@@ -163,10 +191,11 @@ RelExpr::RelExpr(Token token): ExprNode{token} {}
 void RelExpr::print() {
 	token().print();
 }
+
 std::string RelExpr::strEval(SymTab &symTab) {	return ""; }
 
 int RelExpr::evaluate(SymTab &symTab) {
-	std::cout << "hi\n";
+	std::cout << "evluating relexpr\n";
 	if ( !symTab.isDefined(token().relOp())) {
 		std::cout << "Use of undefined variable, " << token().relOp() << std::endl;
 		exit(1);
@@ -188,7 +217,6 @@ int Str::evaluate(SymTab &symTab) {
 }	
 
 std::string Str::strEval(SymTab &symTab) {
-	std::cout << token().getStr() << std::endl;
 	return token().getStr();
 }
 
@@ -235,13 +263,20 @@ void ForSequence::initIters(SymTab &symTab){
 }
 
 int ForSequence::evaluate(SymTab &symTab) {
-	int res = startVal < endVal;
-	res ? next(symTab) : symTab.setValueFor(token().getName(), startVal - 1);
+  int res;
+  if (endVal < 0){
+	  res = startVal > endVal;
+	}
+	else
+	  res = startVal < endVal;
+	//res ? next(symTab) : symTab.setValueFor(token().getName(), startVal - 1);
 	return res;
 }
 
 void ForSequence::next(SymTab &symTab) {
-	symTab.setValueFor(token().getName(), startVal+=step);
+	int val = startVal;
+	startVal+=step;
+	symTab.setValueFor(token().getName(), val);
 }
 
 std::string ForSequence::strEval(SymTab &symTab) {return "";}

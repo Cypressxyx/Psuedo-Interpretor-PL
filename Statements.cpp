@@ -40,7 +40,7 @@ AssignmentStatement::AssignmentStatement(std::string lhsVar): _lhsVariable{lhsVa
  
 void AssignmentStatement::evaluate(SymTab &symTab) {
 		if (_Debug) 
-			std::cout << "evaluating\n";
+			std::cout << "Evaluating an assign Statement\n";
 		Token rhsTok = rhsExpression()->token();
 
 		if (rhsTok.isName()) { //handle variable assignmenst
@@ -65,6 +65,7 @@ void AssignmentStatement::evaluate(SymTab &symTab) {
 		else { //handle infix expr assignment	 
 			InfixExprNode *node = dynamic_cast<InfixExprNode *>(rhsExpression());
 			ExprNode *left = node->left();
+			
 			if ( left->token().isStr()) {
 				auto rhs = rhsExpression()->strEval(symTab);
     		symTab.setValueFor(lhsVariable(), rhs);
@@ -73,7 +74,12 @@ void AssignmentStatement::evaluate(SymTab &symTab) {
 				auto rhs = rhsExpression()->evaluate(symTab);
     		symTab.setValueFor(lhsVariable(), rhs);
 			}
-			else {
+			else { //variable
+				if(left->token().isRelationalOperator()) {
+					auto rhs = rhsExpression()->evaluate(symTab);
+    			symTab.setValueFor(lhsVariable(), rhs);
+				} else{
+					
 				TypeDesc *desc = symTab.getValueFor(left->token().getName());
 				if (desc->type() == TypeDesc::STRING && !rhsExpression()->token().isRelationalOperator()) { 
 					auto rhs = rhsExpression()->strEval(symTab);
@@ -81,6 +87,7 @@ void AssignmentStatement::evaluate(SymTab &symTab) {
 				} else {
     			auto rhs = rhsExpression()->evaluate(symTab);
     			symTab.setValueFor(lhsVariable(), rhs);
+				} 
 				}
 			}
 		}
@@ -98,7 +105,8 @@ ExprNode *&AssignmentStatement::rhsExpression() {
  
 void AssignmentStatement::print() {
     std::cout << _lhsVariable << " = ";
-    _rhsExpression->print();
+		bool t = _rhsExpression == nullptr;
+   // _rhsExpression->print();
     std::cout << std::endl;
 }
 
@@ -114,41 +122,40 @@ PrintStatement::PrintStatement(std::vector<ExprNode *> *nodes) : _nodes{nodes} {
 template <typename T>
 void printDesc(TypeDesc *desc) {
 	T *_desc  = dynamic_cast<T *>(desc);
-	std::cout << _desc->getVal() << std::endl; 	
+	std::cout << _desc->getVal() ; 	
 }
 
 void PrintStatement::evaluate(SymTab &symTab){
 	for(int i = 0 ; i < _nodes->size() ; i++) {
-	ExprNode *value = _nodes[0][i];
-	std::cout << "evaluting\n";
-	if (value->token().isName()) {
-		TypeDesc *desc = symTab.getValueFor(value->token().getName());
-		desc->type() == TypeDesc::INTEGER ? printDesc<NumDesc>(desc) : printDesc<StrDesc>(desc);
-	}
-	else if (value->token().isArithmeticOperator()) {
-		InfixExprNode *node = dynamic_cast<InfixExprNode *>(value);
-		if(node->left()->token().isStr()) {
-			std::cout << value->strEval(symTab) << std::endl;
+		ExprNode *value = _nodes[0][i];
+		if (value->token().isName()) {
+			TypeDesc *desc = symTab.getValueFor(value->token().getName());
+			desc->type() == TypeDesc::INTEGER ? printDesc<NumDesc>(desc) : printDesc<StrDesc>(desc);
 		}
-		else if(node->left()->token().isWholeNumber()) {
-			std::cout << value->evaluate(symTab) << std::endl;
+		else if (value->token().isArithmeticOperator()) {
+			InfixExprNode *node = dynamic_cast<InfixExprNode *>(value);
+			if(node->left()->token().isStr()) {
+				std::cout << value->strEval(symTab);
+			}
+			else if(node->left()->token().isWholeNumber()) {
+				std::cout << value->evaluate(symTab);
+			}
+			else { //variable
+				TypeDesc *desc = symTab.getValueFor(node->left()->token().getName());
+				if(desc->type() == TypeDesc::INTEGER)
+					std::cout << value->evaluate(symTab);
+				if(desc->type() == TypeDesc::STRING)
+					std::cout << value->strEval(symTab);
+			}
 		}
-		else { //variable
-			TypeDesc *desc = symTab.getValueFor(node->left()->token().getName());
-			if(desc->type() == TypeDesc::INTEGER)
-				std::cout << value->evaluate(symTab) << std::endl;
-			if(desc->type() == TypeDesc::STRING)
-				std::cout << value->strEval(symTab) << std::endl;
+		else if (value->token().isStr()) {
+			std::cout << value->strEval(symTab);
 		}
-	}
-	
-	else if (value->token().isStr()) {
-			std::cout << value->strEval(symTab) << std::endl;
-	}
-	else 		
-			std::cout << value->evaluate(symTab) << std::endl;
-	}
-	return ;
+		else 		
+			std::cout << value->evaluate(symTab);
+		std::cout << " ";
+		}
+	std::cout << "" << std::endl;
 }
  
 void PrintStatement::print() {
@@ -165,8 +172,10 @@ ForStatement::ForStatement(ForSequence *seq, Statements *stmts) {
  
 void ForStatement::evaluate(SymTab &symTab) {
 	_seq->initIters(symTab);
-	while(_seq->evaluate(symTab)) 
+	while(_seq->evaluate(symTab)) {
+		_seq->next(symTab);
 		_stmts->evaluate(symTab);
+	}
 }
  
 void ForStatement::print() {
@@ -179,11 +188,8 @@ IfStmt::IfStmt() : _stmts{nullptr} {}
 IfStmt::IfStmt(std::vector<Statements *>*stmts, std::vector<ExprNode *>*relExprs) : _relNodes{relExprs}, _stmts{stmts} {}
 
 void IfStmt::evaluate(SymTab &symTab) {
-	std::cout << "evaluating if statements\n";
 	int size = (_relNodes[0]).size();
 	int numStmts = _stmts->size();
-	std::cout << "num nodes is: " << size << std::endl;
-	std::cout << "num stmts is: " << _stmts->size() << std::endl;
 	int idx = 0;
 	int res;
 	while(size--) {
@@ -194,7 +200,6 @@ void IfStmt::evaluate(SymTab &symTab) {
 		}
 		idx++;
 	}
-	std::cout << idx << std::endl;
 	if (size < 0 && idx != numStmts) { //no evaluating has been done yet
 		_stmts[0][numStmts - 1]->evaluate(symTab);
 	}

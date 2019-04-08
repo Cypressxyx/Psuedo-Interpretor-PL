@@ -31,6 +31,7 @@ private:
     std::string readName();
     int readInteger();
 		std::stack <int> stack;
+		bool sendDedents;
 };
 
 #endif //EXPRINTER_TOKENIZER_HPP

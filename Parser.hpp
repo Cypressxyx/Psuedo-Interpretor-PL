@@ -24,12 +24,17 @@ public:
     ForStatement        *forStatement();
     IfStmt              *ifStmt();
 
+    ExprNode *boolExpr();
+    ExprNode *andExpr();
+    ExprNode *orExpr();
+    ExprNode *notExpr();
     ExprNode *relExpr();
     ExprNode *relTerm();
     ExprNode *relPrimary();
     ExprNode *expr();
     ExprNode *term();
     ExprNode *primary();
+    ExprNode *factor();
 
     std::string id();
 
